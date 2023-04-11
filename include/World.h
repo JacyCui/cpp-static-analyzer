@@ -9,15 +9,19 @@
 #include <llvm/Support/raw_ostream.h>
 #include <clang/Frontend/ASTUnit.h>
 
-using namespace std;
-using namespace clang;
-
 namespace analyzer {
 
+    /**
+     * The program information
+     */
     class World {
     private:
         static World* theWorld;
     public:
+        /**
+         * must be called after calling {@code initialize}
+         * @return const reference to the world instance created by {@code initialize}
+         */
         static const World& get();
 
         /**
@@ -26,20 +30,47 @@ namespace analyzer {
          * @param includeDir the directory path of all
          * @param std language standard, e.g. c++11, c99
          */
-        static void initialize(const string& sourceDir, const string& includeDir, const string& std=string("c++11"));
+        static void initialize(const std::string& sourceDir, const std::string& includeDir="", const std::string& std=std::string("c++11"));
 
     private:
         // sourcefile name -> sourcefile content
-        const unordered_map<string, string> sourceCode;
+        std::unordered_map<std::string, std::string> sourceCode;
         // compiler arguments
-        vector<string> args;
+        std::vector<std::string> args;
         // asts of a program
-        vector<unique_ptr<ASTUnit>> astList;
-        World(unordered_map<string, string>&& sourceCode, vector<string>&& args);
+        std::vector<std::unique_ptr<clang::ASTUnit>> astList;
+        // all functions
 
+        // main function
+
+
+        /**
+         * Construct the world, will only be called once.
+         * @param sourceCode map from source code filename to source code string
+         * @param args compiler arguments
+         */
+        World(std::unordered_map<std::string, std::string>&& sourceCode, std::vector<std::string>&& args);
+        ~World();
 
     public:
-        [[nodiscard]] const vector<unique_ptr<ASTUnit>>& getAstList() const;
+
+        /**
+         * @return the ASTUnit list of the whole program
+         */
+        [[nodiscard]] const std::vector<std::unique_ptr<clang::ASTUnit>>& getAstList() const;
+
+        /**
+         * pretty dump asts of all source codes in the world
+         * @param out the llvm raw out stream (e.g. outs(), errs() or other user defined streams)
+         */
+        void dumpAST(llvm::raw_ostream& out) const;
+
+        /**
+         * pretty dump asts of a given source file
+         * @param fileName relative path of the source file from current working directory
+         * @param out the llvm raw out stream (e.g. outs(), errs() or other user defined streams)
+         */
+        void dumpAST(const std::string& fileName, llvm::raw_ostream& out) const;
     };
 
     /**
@@ -47,7 +78,7 @@ namespace analyzer {
      * @param sourceDir the directory containing all the source files
      * @return a map from filename(relative, end with .c / .cpp / .cxx / .cc) to its contents
      */
-    unordered_map<string, string> loadSourceCodes(const string& sourceDir);
+    std::unordered_map<std::string, std::string> loadSourceCodes(const std::string& sourceDir);
 
 
 } // analyzer

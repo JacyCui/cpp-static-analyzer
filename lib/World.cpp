@@ -6,6 +6,7 @@
 #include "World.h"
 
 namespace fs = std::filesystem;
+namespace tl = clang::tooling;
 
 namespace analyzer {
     World* World::theWorld = nullptr;
@@ -13,27 +14,27 @@ namespace analyzer {
     const World& World::get()
     {
         if (theWorld == nullptr) {
-            throw runtime_error("The world is not initialized!");
+            throw std::runtime_error("The world is not initialized!");
         }
         return *theWorld;
     }
 
-    unordered_map<string, string> loadSourceCodes(const string& sourceDir)
+    std::unordered_map<std::string, std::string> loadSourceCodes(const std::string& sourceDir)
     {
-        unordered_map<string, string> result;
+        std::unordered_map<std::string, std::string> result;
         for (const auto& entry : fs::recursive_directory_iterator(sourceDir)) {
             if (entry.is_regular_file()) {
                 const fs::path& p = entry.path();
-                const string& ext = p.extension().string();
+                const std::string& ext = p.extension().string();
                 if (ext == ".cpp" || ext == ".cc" || ext == ".c" || ext == ".cxx") {
-                    ifstream fileStream(p);
+                    std::ifstream fileStream(p);
                     if (!fileStream.is_open()) {
-                        throw runtime_error("Fail to open file: " + p.string());
+                        throw std::runtime_error("Fail to open file: " + p.string());
                     }
                     result.insert_or_assign(
                             fs::relative(p).string(),
-                            string(istreambuf_iterator<char>(fileStream),
-                                    istreambuf_iterator<char>()));
+                            std::string(std::istreambuf_iterator<char>(fileStream),
+                                   std::istreambuf_iterator<char>()));
                     fileStream.close();
                 }
             }
@@ -41,29 +42,59 @@ namespace analyzer {
         return std::move(result);
     }
 
-    void World::initialize(const string& sourceDir, const string& includeDir, const string& std)
+    void World::initialize(const std::string& sourceDir, const std::string& includeDir, const std::string& std)
     {
+        if (theWorld != nullptr) {
+            delete theWorld;
+            theWorld = nullptr;
+        }
         theWorld = new World(loadSourceCodes(sourceDir),
-                             vector<string>{"-I" + includeDir, "-std=" + std});
+                             std::vector<std::string>{"-I" + includeDir, "-std=" + std});
     }
 
-    World::World(unordered_map<string, string>&& sourceCode, vector<string>&& args)
+    World::World(std::unordered_map<std::string, std::string>&& sourceCode, std::vector<std::string>&& args)
         :sourceCode(std::move(sourceCode)), args(std::move(args))
     {
         for (const auto& [filename, content] : this->sourceCode) {
             uint64_t t1 = llvm::errs().tell();
-            unique_ptr<ASTUnit> p = tooling::buildASTFromCodeWithArgs(content, this->args, filename);
+            std::unique_ptr<clang::ASTUnit> p = tl::buildASTFromCodeWithArgs(content, this->args, filename);
             uint64_t t2 = llvm::errs().tell();
             if (t1 != t2) {
-                throw runtime_error("Detect syntax or semantic error in source file: " + filename);
+                throw std::runtime_error("Detect syntax or semantic error in source file: " + filename);
             }
             astList.emplace_back(std::move(p));
         }
     }
 
-    const vector<unique_ptr<ASTUnit>>& World::getAstList() const
+    World::~World() {
+
+    }
+
+    const std::vector<std::unique_ptr<clang::ASTUnit>>& World::getAstList() const
     {
         return astList;
+    }
+
+    void World::dumpAST(llvm::raw_ostream& out) const
+    {
+        for (const std::unique_ptr<clang::ASTUnit>& ast: astList) {
+            out << "----------------------------------------\n";
+            out << ast->getMainFileName() << ": \n";
+            out << "----------------------------------------\n";
+            ast->getASTContext().getTranslationUnitDecl()->dump(out);
+        }
+    }
+
+    void World::dumpAST(const std::string& fileName, llvm::raw_ostream& out) const
+    {
+        auto it = std::find_if(astList.begin(), astList.end(), [&](const auto& ast) -> bool {
+            return ast->getMainFileName() == fileName;
+        });
+        if (it != astList.end()) {
+            (*it)->getASTContext().getTranslationUnitDecl()->dump(out);
+        } else {
+            llvm::errs() << fileName + "doesn't exist.\n";
+        }
     }
 
 } // analyzer

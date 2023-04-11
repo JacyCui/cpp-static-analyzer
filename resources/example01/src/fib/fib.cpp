@@ -6,6 +6,7 @@ int Fib::fib(int i) {
         int tmp = b;
         b = a + b;
         a = tmp;
+        i--;
     }
     return a;
 }

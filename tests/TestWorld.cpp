@@ -6,55 +6,68 @@
 
 #include "World.h"
 
-using namespace analyzer;
+namespace al=analyzer;
 
 TEST_SUITE_BEGIN("World Tests");
 
 TEST_CASE("testLoadSourceCodes"
     * doctest::description("test source code finding and reading")) {
-    unordered_map<string, string> fileLists = loadSourceCodes(string("resources/example01/src"));
+    std::unordered_map<std::string, std::string> fileLists = al::loadSourceCodes(std::string("resources/example01/src"));
 
-    string p1("resources/example01/src/main.cpp");
+    std::string p1("resources/example01/src/main.cpp");
     CHECK(fileLists.find(p1) != fileLists.end());
-    ifstream f1(p1);
+    std::ifstream f1(p1);
     CHECK(f1.is_open());
-    CHECK_EQ(fileLists.at(p1) , string(istreambuf_iterator<char>(f1),
-                     istreambuf_iterator<char>()));
+    CHECK_EQ(fileLists.at(p1) , std::string(std::istreambuf_iterator<char>(f1),
+                                       std::istreambuf_iterator<char>()));
     f1.close();
 
-    string p2("resources/example01/src/factor/factor.cpp");
+    std::string p2("resources/example01/src/factor/factor.cpp");
     CHECK(fileLists.find(p2) != fileLists.end());
-    ifstream f2(p2);
+    std::ifstream f2(p2);
     CHECK(f2.is_open());
-    CHECK_EQ(fileLists.at(p2) , string(istreambuf_iterator<char>(f2),
-                                       istreambuf_iterator<char>()));
+    CHECK_EQ(fileLists.at(p2) , std::string(std::istreambuf_iterator<char>(f2),
+                                       std::istreambuf_iterator<char>()));
 
-    string p3("resources/example01/src/fib/fib.cpp");
+    std::string p3("resources/example01/src/fib/fib.cpp");
     CHECK(fileLists.find(p3) != fileLists.end());
-    ifstream  f3(p3);
+    std::ifstream  f3(p3);
     CHECK(f3.is_open());
-    CHECK_EQ(fileLists.at(p3) , string(istreambuf_iterator<char>(f3),
-                                       istreambuf_iterator<char>()));
+    CHECK_EQ(fileLists.at(p3) , std::string(std::istreambuf_iterator<char>(f3),
+                                       std::istreambuf_iterator<char>()));
 }
 
 TEST_CASE("testInitialize"
     * doctest::description("test world initialization")) {
-    World::initialize(string("resources/example01/src"),
+    al::World::initialize(std::string("resources/example01/src"),
                       "resources/example01/include", "c++11");
-    const World& word = World::get();
-    vector<string> fileList;
-    for (const unique_ptr<ASTUnit>& ast : word.getAstList()) {;
+    const al::World& word = al::World::get();
+    std::vector<std::string> fileList;
+    for (const std::unique_ptr<clang::ASTUnit>& ast : word.getAstList()) {;
         fileList.emplace_back(ast->getMainFileName().str());
     }
     sort(fileList.begin(), fileList.end());
-    CHECK_EQ(fileList, vector<string>{
+    CHECK_EQ(fileList, std::vector<std::string>{
         "resources/example01/src/factor/factor.cpp",
         "resources/example01/src/fib/fib.cpp",
         "resources/example01/src/main.cpp"
     });
-
+    word.dumpAST(llvm::errs());
 }
 
+TEST_CASE("testDumpAST"
+    * doctest::description("test pretty ast dumper")) {
+    al::World::initialize(std::string("resources/example01/src"),
+                          "resources/example01/include", "c++11");
+    const al::World& word = al::World::get();
+    word.dumpAST(llvm::outs());
+    word.dumpAST(std::string("resources/example01/src/factor/factor.cpp"), llvm::outs());
+    uint64_t t1 = llvm::outs().tell(), t2 = llvm::errs().tell();
+    word.dumpAST(std::string("resources/example01/src/test.cpp"), llvm::outs());
+    uint64_t t3 = llvm::outs().tell(), t4 = llvm::errs().tell();
+    CHECK_EQ(t1, t3);
+    CHECK_NE(t2, t4);
+}
 
 TEST_SUITE_END();
 
