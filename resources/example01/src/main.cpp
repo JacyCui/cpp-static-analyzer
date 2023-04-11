@@ -1,7 +1,9 @@
 #include "factor.h"
 #include "fib.h"
 
-int main() {
+using namespace example01;
+
+int main(int argc, const char* argv[]) {
     AbstractFactor* f1 = new Factor(10);
     int a = 8;
     int c = f1->factor(a);

@@ -14,7 +14,7 @@ namespace analyzer {
     /**
      * The program information
      */
-    class World {
+    class World final {
     private:
         static World* theWorld;
     public:
@@ -30,7 +30,7 @@ namespace analyzer {
          * @param includeDir the directory path of all
          * @param std language standard, e.g. c++11, c99
          */
-        static void initialize(const std::string& sourceDir, const std::string& includeDir="", const std::string& std=std::string("c++11"));
+        static void initialize(const std::string& sourceDir, const std::string& includeDir="", const std::string& std=std::string("c++98"));
 
     private:
         // sourcefile name -> sourcefile content
@@ -39,10 +39,10 @@ namespace analyzer {
         std::vector<std::string> args;
         // asts of a program
         std::vector<std::unique_ptr<clang::ASTUnit>> astList;
-        // all functions
-
+        // all function declarations with definition
+        std::unordered_map<std::string, const clang::FunctionDecl*> funcDecls;
         // main function
-
+        const clang::FunctionDecl* mainFuncDecl;
 
         /**
          * Construct the world, will only be called once.
@@ -51,6 +51,8 @@ namespace analyzer {
          */
         World(std::unordered_map<std::string, std::string>&& sourceCode, std::vector<std::string>&& args);
         ~World();
+
+        void buildFunctionList();
 
     public:
 
@@ -71,6 +73,10 @@ namespace analyzer {
          * @param out the llvm raw out stream (e.g. outs(), errs() or other user defined streams)
          */
         void dumpAST(const std::string& fileName, llvm::raw_ostream& out) const;
+
+
+        [[nodiscard]] const std::unordered_map<std::string, const clang::FunctionDecl*>& getFuncDecls() const;
+
     };
 
     /**
@@ -80,6 +86,7 @@ namespace analyzer {
      */
     std::unordered_map<std::string, std::string> loadSourceCodes(const std::string& sourceDir);
 
+    std::string generateFunctionSignature(const clang::FunctionDecl* functionDecl);
 
 } // analyzer
 
