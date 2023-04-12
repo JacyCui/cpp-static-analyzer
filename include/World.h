@@ -9,84 +9,127 @@
 #include <llvm/Support/raw_ostream.h>
 #include <clang/Frontend/ASTUnit.h>
 
+#include "language/CPPMethod.h"
+#include "util/Logger.h"
+
 namespace analyzer {
 
+    namespace lang = language;
+
     /**
-     * The program information
+     * @class World
+     * @brief The program information
      */
     class World final {
     private:
-        static World* theWorld;
+        static World* theWorld; ///< the only world instance in the program
+        static util::Logger logger;
+
     public:
         /**
-         * must be called after calling {@code initialize}
+         * @brief must be called after calling {@code initialize}
          * @return const reference to the world instance created by {@code initialize}
          */
         static const World& get();
 
+        static util::Logger& getLogger();
+
+        static void setLogger(util::Logger newLogger);
+
         /**
-         * Initialize the word the whole program, including ast, cfg and call graph
-         * @param sourceDir the directory path of all source files
-         * @param includeDir the directory path of all
-         * @param std language standard, e.g. c++11, c99
+         * @brief Initialize the word the whole program, including ast, cfg and call graph
+         * @param[in] sourceDir the directory path of all source files
+         * @param[in] includeDir the directory path of all
+         * @param[in] std language standard, e.g. c++98, c++11, c99
          */
         static void initialize(const std::string& sourceDir, const std::string& includeDir="", const std::string& std=std::string("c++98"));
 
     private:
-        // sourcefile name -> sourcefile content
-        std::unordered_map<std::string, std::string> sourceCode;
-        // compiler arguments
-        std::vector<std::string> args;
-        // asts of a program
-        std::vector<std::unique_ptr<clang::ASTUnit>> astList;
-        // all function declarations with definition
-        std::unordered_map<std::string, const clang::FunctionDecl*> funcDecls;
-        // main function
-        const clang::FunctionDecl* mainFuncDecl;
+
+        std::unordered_map<std::string, std::string> sourceCode; ///< sourcefile name -> sourcefile content
+
+        std::vector<std::string> args; ///< compiler arguments
+
+        std::vector<std::unique_ptr<clang::ASTUnit>> astList; ///< asts of a program
+
+        std::vector<std::shared_ptr<lang::CPPMethod>> allMethods; ///< all cpp methods in the program
+
+        std::shared_ptr<lang::CPPMethod> mainMethod; ///< main method
 
         /**
-         * Construct the world, will only be called once.
+         * @brief Construct the world, will only be called once.
          * @param sourceCode map from source code filename to source code string
          * @param args compiler arguments
          */
         World(std::unordered_map<std::string, std::string>&& sourceCode, std::vector<std::string>&& args);
+
         ~World();
 
         void buildFunctionList();
 
     public:
 
+        World(const World&) = delete;
+        World& operator=(const World&) = delete;
+
+        /**
+         * @return a map from source file path to source file content
+         */
+        [[nodiscard]] const std::unordered_map<std::string, std::string>& getSourceCode() const
+        {
+            return sourceCode;
+        }
+
         /**
          * @return the ASTUnit list of the whole program
          */
-        [[nodiscard]] const std::vector<std::unique_ptr<clang::ASTUnit>>& getAstList() const;
+        [[nodiscard]] const std::vector<std::unique_ptr<clang::ASTUnit>>& getAstList() const
+        {
+            return astList;
+        }
 
         /**
-         * pretty dump asts of all source codes in the world
-         * @param out the llvm raw out stream (e.g. outs(), errs() or other user defined streams)
+         * pretty dump asts of all source codes in the world into a stream
+         * @param[out] out the llvm raw out stream (e.g. outs(), errs() or other user defined streams)
          */
         void dumpAST(llvm::raw_ostream& out) const;
 
         /**
-         * pretty dump asts of a given source file
-         * @param fileName relative path of the source file from current working directory
-         * @param out the llvm raw out stream (e.g. outs(), errs() or other user defined streams)
+         * @brief pretty dump asts of a given source file
+         * @param[in] fileName relative path of the source file from current working directory
+         * @param[out] out the llvm raw out stream (e.g. outs(), errs() or other user defined streams)
          */
         void dumpAST(const std::string& fileName, llvm::raw_ostream& out) const;
 
+        [[nodiscard]] const std::vector<std::shared_ptr<lang::CPPMethod>>& getAllMethods() const
+        {
+            return allMethods;
+        }
 
-        [[nodiscard]] const std::unordered_map<std::string, const clang::FunctionDecl*>& getFuncDecls() const;
+        [[nodiscard]] const std::shared_ptr<lang::CPPMethod> getMainMethod() const
+        {
+            return mainMethod;
+        }
 
     };
 
     /**
-     * get c/cpp source codes recursively from a source file directory
-     * @param sourceDir the directory containing all the source files
+     * @brief get c/cpp source codes recursively from a source file directory
+     * @param[in] sourceDir the directory containing all the source files
      * @return a map from filename(relative, end with .c / .cpp / .cxx / .cc) to its contents
      */
     std::unordered_map<std::string, std::string> loadSourceCodes(const std::string& sourceDir);
 
-    std::string generateFunctionSignature(const clang::FunctionDecl* functionDecl);
+    namespace language {
+
+        /**
+         * @brief generate string signature of a function decl ast
+         * @param[in] functionDecl function declaration ast
+         * @return a string representation of signature
+         */
+        std::string generateFunctionSignature(const clang::FunctionDecl* functionDecl);
+
+    }
 
 } // analyzer
 

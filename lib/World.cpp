@@ -1,5 +1,6 @@
 #include <filesystem>
 #include <fstream>
+#include <unordered_set>
 
 #include <clang/Tooling/Tooling.h>
 #include <clang/ASTMatchers/ASTMatchers.h>
@@ -13,6 +14,7 @@ namespace mt = clang::ast_matchers;
 
 namespace analyzer {
     World* World::theWorld = nullptr;
+    util::Logger World::logger(&llvm::outs());
 
     const World& World::get()
     {
@@ -22,8 +24,19 @@ namespace analyzer {
         return *theWorld;
     }
 
+    util::Logger& World::getLogger()
+    {
+        return logger;
+    }
+
+    void World::setLoggerOutstream(llvm::raw_ostream& os)
+    {
+        logger.setOutstream(&os);
+    }
+
     void World::initialize(const std::string& sourceDir, const std::string& includeDir, const std::string& std)
     {
+        llvm::outs() << "Start building the world...\n";
         if (theWorld != nullptr) {
             delete theWorld;
             theWorld = nullptr;
@@ -35,8 +48,11 @@ namespace analyzer {
             theWorld = new World(loadSourceCodes(sourceDir),
                                  std::vector<std::string>{"-I" + includeDir, "-std=" + std});
         }
-        theWorld->buildFunctionList();
+        llvm::outs() << "World building finished!\n";
     }
+
+
+    //------
 
     World::World(std::unordered_map<std::string, std::string>&& sourceCode, std::vector<std::string>&& args)
         :sourceCode(std::move(sourceCode)), args(std::move(args))
@@ -50,17 +66,19 @@ namespace analyzer {
             }
             astList.emplace_back(std::move(p));
         }
-        mainFuncDecl = nullptr;
+        mainMethod = nullptr;
+        buildFunctionList();
     }
 
     World::~World() {
 
     }
 
-    void World::buildFunctionList() {
+    void World::buildFunctionList()
+    {
+        llvm::outs() << "Building function list...\n";
+        std::unordered_set<std::string> signatureSet;
         for (const std::unique_ptr<clang::ASTUnit>& ast: astList) {
-            clang::ASTContext& astContext = ast->getASTContext();
-            const clang::TranslationUnitDecl* translationUnitDecl = astContext.getTranslationUnitDecl();
 
             class FunctionRegister: public mt::MatchFinder::MatchCallback {
             private:
@@ -69,12 +87,11 @@ namespace analyzer {
             public:
                 void run(const mt::MatchFinder::MatchResult& Result) override {
                     if (const auto* fd = Result.Nodes.getNodeAs<clang::FunctionDecl>("function")) {
-                        if (fd->isThisDeclarationADefinition()) {
+                        if (fd->isThisDeclarationADefinition() && fd->hasBody() && !fd->isImplicit()) {
                             functions.emplace_back(fd);
                         }
                     }
                 }
-
                 std::vector<const clang::FunctionDecl *> &getFunctions() {
                     return functions;
                 }
@@ -86,22 +103,26 @@ namespace analyzer {
             finder.matchAST(ast->getASTContext());
 
             for (const clang::FunctionDecl* fd : functionRegister.getFunctions()) {
-                if (fd->getNameAsString() == "main") {
-                    if (mainFuncDecl == nullptr) {
-                        mainFuncDecl = fd;
+                std::string sig = lang::generateFunctionSignature(fd);
+                llvm::outs() << "Building function " + sig + " ...\n";
+                if (signatureSet.find(sig) == signatureSet.end()) {
+                    signatureSet.insert(sig);
+                    if (fd->getNameAsString() == "main") {
+                        if (!mainMethod) {
+                            mainMethod = std::make_shared<lang::CPPMethod>(ast, fd, sig);
+                            allMethods.emplace_back(mainMethod);
+                        } else {
+                            throw std::runtime_error("Duplicate definition of main function!");
+                        }
                     } else {
-                        throw std::runtime_error("Duplicate definition of main function!");
+                        allMethods.emplace_back(std::make_shared<lang::CPPMethod>(ast, fd, sig));
                     }
+                } else {
+                    llvm::errs() << "Found another definition for " + sig + ", this definition is ignored!\n";
                 }
-                std::string sig = generateFunctionSignature(fd);
-                funcDecls.insert_or_assign(sig, fd);
             }
         }
-    }
-
-    const std::vector<std::unique_ptr<clang::ASTUnit>>& World::getAstList() const
-    {
-        return astList;
+        llvm::outs() << "Function list building finished!\n";
     }
 
     void World::dumpAST(llvm::raw_ostream& out) const
@@ -126,14 +147,11 @@ namespace analyzer {
         }
     }
 
-    const std::unordered_map<std::string, const clang::FunctionDecl*>& World::getFuncDecls() const
-    {
-        return funcDecls;
-    }
+    // ----------
 
     std::unordered_map<std::string, std::string> loadSourceCodes(const std::string& sourceDir)
     {
-        llvm::outs() << "Loading source code from " + sourceDir + "\n";
+        llvm::outs() << "Loading source code from " + sourceDir + "...\n";
         std::unordered_map<std::string, std::string> result;
         for (const auto& entry : fs::recursive_directory_iterator(sourceDir)) {
             if (entry.is_regular_file()) {
@@ -153,26 +171,30 @@ namespace analyzer {
                 }
             }
         }
+        llvm::outs() << "Source loading finished!\n";
         return result;
     }
 
-    std::string generateFunctionSignature(const clang::FunctionDecl* functionDecl)
-    {
-        std::string result;
-        result.append(functionDecl->getReturnType().getAsString());
-        result.append(" ");
-        result.append(functionDecl->getQualifiedNameAsString());
-        result.append("(");
-        bool firstParam = true;
-        for (const clang::ParmVarDecl* param : functionDecl->parameters()) {
-            if (!firstParam) {
-                result.append(", ");
+    namespace language {
+
+        std::string generateFunctionSignature(const clang::FunctionDecl *functionDecl) {
+            std::string result;
+            result.append(functionDecl->getReturnType().getAsString());
+            result.append(" ");
+            result.append(functionDecl->getQualifiedNameAsString());
+            result.append("(");
+            bool firstParam = true;
+            for (const clang::ParmVarDecl *param: functionDecl->parameters()) {
+                if (!firstParam) {
+                    result.append(", ");
+                }
+                result.append(param->getType().getAsString());
+                firstParam = false;
             }
-            result.append(param->getType().getAsString());
-            firstParam = false;
+            result.append(")");
+            return result;
         }
-        result.append(")");
-        return result;
+
     }
 
 } // analyzer

@@ -1,7 +1,8 @@
 add_library(libanalyzer
         World.cpp
         ir/IR.cpp
-        ir/CPPMethod.cpp ir/CPPMethod.h)
+        language/CPPMethod.cpp
+        util/Logger.cpp)
 
 target_link_libraries(libanalyzer
         ${LLVM_LIBS}
