@@ -13,30 +13,23 @@ namespace tl = clang::tooling;
 namespace mt = clang::ast_matchers;
 
 namespace analyzer {
+
     World* World::theWorld = nullptr;
+
     util::Logger World::logger(&llvm::outs());
 
     const World& World::get()
     {
         if (theWorld == nullptr) {
+            logger.Error("The world is not initialized!");
             throw std::runtime_error("The world is not initialized!");
         }
         return *theWorld;
     }
 
-    util::Logger& World::getLogger()
-    {
-        return logger;
-    }
-
-    void World::setLoggerOutstream(llvm::raw_ostream& os)
-    {
-        logger.setOutstream(&os);
-    }
-
     void World::initialize(const std::string& sourceDir, const std::string& includeDir, const std::string& std)
     {
-        llvm::outs() << "Start building the world...\n";
+        logger.Progress("Start building the world...");
         if (theWorld != nullptr) {
             delete theWorld;
             theWorld = nullptr;
@@ -48,7 +41,7 @@ namespace analyzer {
             theWorld = new World(loadSourceCodes(sourceDir),
                                  std::vector<std::string>{"-I" + includeDir, "-std=" + std});
         }
-        llvm::outs() << "World building finished!\n";
+        logger.Success("World building finished!");
     }
 
 
@@ -62,6 +55,7 @@ namespace analyzer {
             std::unique_ptr<clang::ASTUnit> p = tl::buildASTFromCodeWithArgs(content, this->args, filename);
             uint64_t t2 = llvm::errs().tell();
             if (t1 != t2) {
+                logger.Error("Detect syntax or semantic error in source file: " + filename);
                 throw std::runtime_error("Detect syntax or semantic error in source file: " + filename);
             }
             astList.emplace_back(std::move(p));
@@ -70,13 +64,9 @@ namespace analyzer {
         buildFunctionList();
     }
 
-    World::~World() {
-
-    }
-
     void World::buildFunctionList()
     {
-        llvm::outs() << "Building function list...\n";
+        logger.Progress("Building function list...");
         std::unordered_set<std::string> signatureSet;
         for (const std::unique_ptr<clang::ASTUnit>& ast: astList) {
 
@@ -104,7 +94,7 @@ namespace analyzer {
 
             for (const clang::FunctionDecl* fd : functionRegister.getFunctions()) {
                 std::string sig = lang::generateFunctionSignature(fd);
-                llvm::outs() << "Building function " + sig + " ...\n";
+                logger.Info("Building function " + sig + " ...");
                 if (signatureSet.find(sig) == signatureSet.end()) {
                     signatureSet.insert(sig);
                     if (fd->getNameAsString() == "main") {
@@ -112,17 +102,18 @@ namespace analyzer {
                             mainMethod = std::make_shared<lang::CPPMethod>(ast, fd, sig);
                             allMethods.emplace_back(mainMethod);
                         } else {
+                            logger.Error("Duplicate definition of main function!");
                             throw std::runtime_error("Duplicate definition of main function!");
                         }
                     } else {
                         allMethods.emplace_back(std::make_shared<lang::CPPMethod>(ast, fd, sig));
                     }
                 } else {
-                    llvm::errs() << "Found another definition for " + sig + ", this definition is ignored!\n";
+                    logger.Warning("Found another definition for \" + sig + \", this definition is ignored!");
                 }
             }
         }
-        llvm::outs() << "Function list building finished!\n";
+        logger.Success("Function list building finished!");
     }
 
     void World::dumpAST(llvm::raw_ostream& out) const
@@ -143,7 +134,7 @@ namespace analyzer {
         if (it != astList.end()) {
             (*it)->getASTContext().getTranslationUnitDecl()->dump(out);
         } else {
-            llvm::errs() << fileName + " doesn't exist.\n";
+            logger.Warning(fileName + " doesn't exist! AST dump operation is skipped.");
         }
     }
 
@@ -151,7 +142,7 @@ namespace analyzer {
 
     std::unordered_map<std::string, std::string> loadSourceCodes(const std::string& sourceDir)
     {
-        llvm::outs() << "Loading source code from " + sourceDir + "...\n";
+        World::getLogger().Progress("Loading source code from " + sourceDir + "...");
         std::unordered_map<std::string, std::string> result;
         for (const auto& entry : fs::recursive_directory_iterator(sourceDir)) {
             if (entry.is_regular_file()) {
@@ -160,9 +151,10 @@ namespace analyzer {
                 if (ext == ".cpp" || ext == ".cc" || ext == ".c" || ext == ".cxx") {
                     std::ifstream fileStream(p);
                     if (!fileStream.is_open()) {
+                        World::getLogger().Error("Fail to open file: " + p.string());
                         throw std::runtime_error("Fail to open file: " + p.string());
                     }
-                    llvm::outs() << "Processing " << fs::relative(p).string() << " ...\n";
+                    World::getLogger().Info("Processing " + fs::relative(p).string() + " ...");
                     result.insert_or_assign(
                             fs::relative(p).string(),
                             std::string(std::istreambuf_iterator<char>(fileStream),
@@ -171,7 +163,7 @@ namespace analyzer {
                 }
             }
         }
-        llvm::outs() << "Source loading finished!\n";
+        World::getLogger().Success("Source loading finished!");
         return result;
     }
 

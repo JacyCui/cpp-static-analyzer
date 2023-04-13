@@ -23,7 +23,7 @@ namespace analyzer {
     class World final {
     private:
         static World* theWorld; ///< the only world instance in the program
-        static util::Logger logger;
+        static util::Logger logger; ///< the logger for the whole world
 
     public:
         /**
@@ -32,17 +32,30 @@ namespace analyzer {
          */
         static const World& get();
 
-        static util::Logger& getLogger();
-
-        static void setLogger(util::Logger newLogger);
-
         /**
          * @brief Initialize the word the whole program, including ast, cfg and call graph
          * @param[in] sourceDir the directory path of all source files
          * @param[in] includeDir the directory path of all
          * @param[in] std language standard, e.g. c++98, c++11, c99
          */
-        static void initialize(const std::string& sourceDir, const std::string& includeDir="", const std::string& std=std::string("c++98"));
+        static void initialize(const std::string& sourceDir, const std::string& includeDir="",
+                               const std::string& std=std::string("c++98")) noexcept(false);
+
+        /**
+         * @return the current logger of the entire world
+         */
+        static util::Logger& getLogger()
+        {
+            return logger;
+        }
+
+        /**
+         * @param newLogger a new logger to be used from now on
+         */
+        static void setLogger(util::Logger newLogger)
+        {
+            logger = newLogger;
+        }
 
     private:
 
@@ -61,9 +74,10 @@ namespace analyzer {
          * @param sourceCode map from source code filename to source code string
          * @param args compiler arguments
          */
-        World(std::unordered_map<std::string, std::string>&& sourceCode, std::vector<std::string>&& args);
+        World(std::unordered_map<std::string, std::string>&& sourceCode,
+              std::vector<std::string>&& args) noexcept(false);
 
-        ~World();
+        ~World() = default;
 
         void buildFunctionList();
 
@@ -89,7 +103,7 @@ namespace analyzer {
         }
 
         /**
-         * pretty dump asts of all source codes in the world into a stream
+         * @brief pretty dump asts of all source codes in the world into a stream
          * @param[out] out the llvm raw out stream (e.g. outs(), errs() or other user defined streams)
          */
         void dumpAST(llvm::raw_ostream& out) const;
@@ -101,11 +115,17 @@ namespace analyzer {
          */
         void dumpAST(const std::string& fileName, llvm::raw_ostream& out) const;
 
+        /**
+         * @return return a vector of all methods in the program
+         */
         [[nodiscard]] const std::vector<std::shared_ptr<lang::CPPMethod>>& getAllMethods() const
         {
             return allMethods;
         }
 
+        /**
+         * @return return the main method
+         */
         [[nodiscard]] const std::shared_ptr<lang::CPPMethod> getMainMethod() const
         {
             return mainMethod;
@@ -118,7 +138,7 @@ namespace analyzer {
      * @param[in] sourceDir the directory containing all the source files
      * @return a map from filename(relative, end with .c / .cpp / .cxx / .cc) to its contents
      */
-    std::unordered_map<std::string, std::string> loadSourceCodes(const std::string& sourceDir);
+    std::unordered_map<std::string, std::string> loadSourceCodes(const std::string& sourceDir) noexcept(false);
 
     namespace language {
 
