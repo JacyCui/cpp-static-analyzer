@@ -1,7 +1,7 @@
 add_executable(tests
         main.cpp
         TestWorld.cpp
-        )
+        TestCPPMethod.cpp)
 
 target_link_libraries(tests
         libanalyzer

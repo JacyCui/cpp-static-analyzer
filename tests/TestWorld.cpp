@@ -87,7 +87,8 @@ TEST_CASE_FIXTURE(WorldTestFixture, "testDumpAST" * doctest::description("testin
 TEST_CASE_FIXTURE(WorldTestFixture, "testGetAllMethods" * doctest::description("testing function list building"))
 {
     std::vector<std::string> signatureList;
-    for (const std::shared_ptr<lang::CPPMethod> &method: world.getAllMethods()) {
+    for (const auto& [sig, method]: world.getAllMethods()) {
+        CHECK_EQ(sig, method->getMethodSignatureAsString());
         signatureList.emplace_back(method->getMethodSignatureAsString());
     }
     std::sort(signatureList.begin(), signatureList.end());

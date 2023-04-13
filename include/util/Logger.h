@@ -12,16 +12,6 @@ namespace analyzer::util {
      * @brief a logger class to encapsulate all kinds of information
      */
     class Logger final {
-    private:
-        enum class Color {
-            RESET, BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE
-        };
-
-        static std::unordered_map<Color, std::string_view> colors;
-
-    private:
-        llvm::raw_ostream* os; ///< an output stream
-        bool enabled; ///< whether the logger is enabled
 
     public:
         /**
@@ -29,51 +19,34 @@ namespace analyzer::util {
          * @param os output stream to carry log information
          * @param enabled whether this logger is enabled
          */
-        Logger(llvm::raw_ostream* os, bool enabled = true);
-        Logger(const Logger&) = default;
-        Logger& operator=(const Logger&) = default;
-        ~Logger() = default;
+        explicit Logger(llvm::raw_ostream* os, bool enabled = true);
 
         /**
          * @brief set the output stream of the logger
          * @param outStream pointer to an output stream
          */
-        void setOutStream(llvm::raw_ostream* outStream)
-        {
-            os = outStream;
-        }
+        void setOutStream(llvm::raw_ostream* outStream);
 
         /**
          * @brief get the current output stream of the logger
          * @return pointer to an output stream
          */
-        llvm::raw_ostream* getOutStream() const
-        {
-            return os;
-        }
+        llvm::raw_ostream* getOutStream() const;
 
         /**
          * @return whether this logger is enabled
          */
-        bool isEnabled() const
-        {
-            return enabled;
-        }
+        bool isEnabled() const;
 
         /**
          * @brief enable this logger
          */
-        void enable() {
-            enabled = true;
-        }
+        void enable();
 
         /**
          * @brief disable this logger
          */
-        void disable()
-        {
-            enabled = false;
-        }
+        void disable();
 
         /**
          * @brief log as progress (BLUE)
@@ -110,6 +83,20 @@ namespace analyzer::util {
          * @param str log information
          */
         void Success(const std::string& str);
+
+    private:
+
+        enum class Color {
+            RESET, BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE
+        };
+
+        static std::unordered_map<Color, std::string_view> colors;
+
+    private:
+
+        llvm::raw_ostream* os; ///< an output stream
+
+        bool enabled; ///< whether the logger is enabled
 
     };
 

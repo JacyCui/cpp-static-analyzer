@@ -1,7 +1,3 @@
-//
-// Created by 崔家才 on 2023/4/12.
-//
-
 #include "util/Logger.h"
 
 namespace analyzer::util {
@@ -22,6 +18,31 @@ namespace analyzer::util {
         :os(os), enabled(enabled)
     {
 
+    }
+
+    void Logger::setOutStream(llvm::raw_ostream* outStream)
+    {
+        os = outStream;
+    }
+
+    llvm::raw_ostream* Logger::getOutStream() const
+    {
+        return os;
+    }
+
+    bool Logger::isEnabled() const
+    {
+        return enabled;
+    }
+
+    void Logger::enable()
+    {
+        enabled = true;
+    }
+
+    void Logger::disable()
+    {
+        enabled = false;
     }
 
     void Logger::Progress(const std::string& str)

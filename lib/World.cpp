@@ -44,6 +44,15 @@ namespace analyzer {
         logger.Success("World building finished!");
     }
 
+    util::Logger& World::getLogger()
+    {
+        return logger;
+    }
+
+    void World::setLogger(util::Logger newLogger)
+    {
+        logger = newLogger;
+    }
 
     //------
 
@@ -61,13 +70,12 @@ namespace analyzer {
             astList.emplace_back(std::move(p));
         }
         mainMethod = nullptr;
-        buildFunctionList();
+        buildMethodMap();
     }
 
-    void World::buildFunctionList()
+    void World::buildMethodMap()
     {
         logger.Progress("Building function list...");
-        std::unordered_set<std::string> signatureSet;
         for (const std::unique_ptr<clang::ASTUnit>& ast: astList) {
 
             class FunctionRegister: public mt::MatchFinder::MatchCallback {
@@ -95,25 +103,34 @@ namespace analyzer {
             for (const clang::FunctionDecl* fd : functionRegister.getFunctions()) {
                 std::string sig = lang::generateFunctionSignature(fd);
                 logger.Info("Building function " + sig + " ...");
-                if (signatureSet.find(sig) == signatureSet.end()) {
-                    signatureSet.insert(sig);
+                if (allMethods.find(sig) == allMethods.end()) {
                     if (fd->getNameAsString() == "main") {
                         if (!mainMethod) {
                             mainMethod = std::make_shared<lang::CPPMethod>(ast, fd, sig);
-                            allMethods.emplace_back(mainMethod);
+                            allMethods.insert_or_assign(sig, mainMethod);
                         } else {
                             logger.Error("Duplicate definition of main function!");
                             throw std::runtime_error("Duplicate definition of main function!");
                         }
                     } else {
-                        allMethods.emplace_back(std::make_shared<lang::CPPMethod>(ast, fd, sig));
+                        allMethods.insert_or_assign(sig, std::make_shared<lang::CPPMethod>(ast, fd, sig));
                     }
                 } else {
-                    logger.Warning("Found another definition for \" + sig + \", this definition is ignored!");
+                    logger.Warning("Found another definition for " + sig + ", this definition is ignored!");
                 }
             }
         }
         logger.Success("Function list building finished!");
+    }
+
+    const std::unordered_map<std::string, std::string>& World::getSourceCode() const
+    {
+        return sourceCode;
+    }
+
+    const std::vector<std::unique_ptr<clang::ASTUnit>>& World::getAstList() const
+    {
+        return astList;
     }
 
     void World::dumpAST(llvm::raw_ostream& out) const
@@ -136,6 +153,16 @@ namespace analyzer {
         } else {
             logger.Warning(fileName + " doesn't exist! AST dump operation is skipped.");
         }
+    }
+
+    const std::unordered_map<std::string, std::shared_ptr<lang::CPPMethod>>& World::getAllMethods() const
+    {
+        return allMethods;
+    }
+
+    const std::shared_ptr<lang::CPPMethod> World::getMainMethod() const
+    {
+        return mainMethod;
     }
 
     // ----------
