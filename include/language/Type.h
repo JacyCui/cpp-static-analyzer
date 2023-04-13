@@ -20,11 +20,15 @@ namespace analyzer::language {
 
         // Functions below should not be called from clients
 
-        explicit Type(const clang::QualType& quanType);
+        /**
+         * construct a wrapper for clang::QualType
+         * @param qualType a clang qualType object
+         */
+        explicit Type(const clang::QualType& qualType);
 
     private:
 
-        clang::QualType quanType; ///< a qualified type
+        clang::QualType qualType; ///< a qualified type
     };
 
 } // language

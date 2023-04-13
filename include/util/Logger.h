@@ -88,9 +88,9 @@ namespace analyzer::util {
 
         enum class Color {
             RESET, BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE
-        };
+        }; ///< ANSI Color Type
 
-        static std::unordered_map<Color, std::string_view> colors;
+        static std::unordered_map<Color, std::string_view> colors; ///< ANSI Color Control String
 
     private:
 

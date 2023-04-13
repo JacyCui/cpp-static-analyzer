@@ -2,15 +2,15 @@
 
 namespace analyzer::language {
 
-    Type::Type(const clang::QualType &quanType)
-        :quanType(quanType)
+    Type::Type(const clang::QualType &qualType)
+        : qualType(qualType)
     {
 
     }
 
     std::string Type::getName()
     {
-        return quanType.getAsString();
+        return qualType.getAsString();
     }
 
 } // language

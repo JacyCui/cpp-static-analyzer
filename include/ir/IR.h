@@ -11,7 +11,7 @@ namespace analyzer::ir {
 
     class IR {
     private:
-        const std::shared_ptr<lang::CPPMethod> method; ///< the pointer this ir is representing
+        //const lang::CPPMethod& method; ///< the pointer this ir is representing
 
     };
 
