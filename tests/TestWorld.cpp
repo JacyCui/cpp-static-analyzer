@@ -10,17 +10,29 @@
 namespace al=analyzer;
 namespace lang=al::language;
 
-TEST_CASE("testWorld"
-    * doctest::description("test world building")) {
+class WorldTestFixture {
+private:
+    static const al::World& initializeAndGet()
+    {
+        al::World::initialize(std::string("resources/example01/src"),
+                              "resources/example01/include");
+        return al::World::get();
+    }
+protected:
+    const al::World &world;
+public:
+    WorldTestFixture()
+        :world(initializeAndGet())
+    {
 
-    al::World::initialize(std::string("resources/example01/src"),
-                          "resources/example01/include");
-    const al::World &world = al::World::get();
+    }
+};
 
-    //---------------------
+TEST_SUITE_BEGIN("testWorld");
 
-    INFO("testing source code finding and reading");
-    const std::unordered_map<std::string, std::string>& fileLists = world.getSourceCode();
+TEST_CASE_FIXTURE(WorldTestFixture, "testGetSourceCode" * doctest::description("test world building"))
+{
+    const std::unordered_map<std::string, std::string> &fileLists = world.getSourceCode();
 
     std::string p1("resources/example01/src/main.cpp");
     CHECK(fileLists.find(p1) != fileLists.end());
@@ -43,24 +55,24 @@ TEST_CASE("testWorld"
     CHECK(f3.is_open());
     CHECK_EQ(fileLists.at(p3), std::string(std::istreambuf_iterator<char>(f3),
                                            std::istreambuf_iterator<char>()));
+}
 
-    //---------------------
-
-    INFO("testing world initialization");
+TEST_CASE_FIXTURE(WorldTestFixture, "testInitialization" * doctest::description("testing world initialization"))
+{
     std::vector<std::string> fileList;
     for (const std::unique_ptr<clang::ASTUnit> &ast: world.getAstList()) {
         fileList.emplace_back(ast->getMainFileName().str());
     }
-    sort(fileList.begin(), fileList.end());
+    std::sort(fileList.begin(), fileList.end());
     CHECK_EQ(fileList, std::vector<std::string>{
             "resources/example01/src/factor/factor.cpp",
             "resources/example01/src/fib/fib.cpp",
             "resources/example01/src/main.cpp"
     });
+}
 
-    //---------------------
-
-    INFO("testing pretty ast dumper");
+TEST_CASE_FIXTURE(WorldTestFixture, "testDumpAST" * doctest::description("testing pretty ast dumper"))
+{
     std::string str;
     llvm::raw_string_ostream output(str);
     world.dumpAST(output);
@@ -70,14 +82,24 @@ TEST_CASE("testWorld"
     uint64_t t2 = world.getLogger().getOutStream()->tell();
     CHECK_NE(t1, t2);
     //world.getLogger().Debug(str);
-
-    //---------------------
-
-    INFO("testing function list building");
-    for (const std::shared_ptr<lang::CPPMethod>& method : world.getAllMethods()) {
-        world.getLogger().Debug(method->getMethodSignatureAsString());
-        world.getLogger().Debug(method->getMethodSourceCode());
-    }
-
 }
 
+TEST_CASE_FIXTURE(WorldTestFixture, "testGetAllMethods" * doctest::description("testing function list building"))
+{
+    std::vector<std::string> signatureList;
+    for (const std::shared_ptr<lang::CPPMethod> &method: world.getAllMethods()) {
+        signatureList.emplace_back(method->getMethodSignatureAsString());
+    }
+    std::sort(signatureList.begin(), signatureList.end());
+    CHECK_EQ(signatureList, std::vector<std::string>{
+        "int example01::Factor::factor(int)",
+        "int example01::Factor::getNum()",
+        "int example01::Fib::fib(int)",
+        "int example01::Fib::getNum()",
+        "int main(int, const char **)",
+        "void example01::Factor::Factor(int)",
+        "void example01::Fib::Fib(int)"
+    });
+}
+
+TEST_SUITE_END();
