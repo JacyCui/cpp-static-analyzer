@@ -7,20 +7,22 @@ namespace al = analyzer;
 namespace lang = al::language;
 
 class CPPMethodTestFixture {
-private:
-    static const std::unordered_map<std::string, std::shared_ptr<lang::CPPMethod>>& initializeAndGet()
-    {
-        al::World::initialize(std::string("resources/example01/src"),
-                              "resources/example01/include");
-        return al::World::get().getAllMethods();
-    }
 protected:
-    const std::unordered_map<std::string, std::shared_ptr<lang::CPPMethod>>& allMethods;
+    std::shared_ptr<lang::CPPMethod> f1, f2, f3, f4, f5, f6, f7;
 public:
     CPPMethodTestFixture()
-        :allMethods(initializeAndGet())
     {
-
+        al::World::initialize("resources/example01/src",
+                              "resources/example01/include");
+        const auto& allMethods = al::World::get().getAllMethods();
+        f1 = allMethods.at("int main(int, const char **)");
+        f2 = allMethods.at("int example01::Fib::fib(int)");
+        f3 = allMethods.at("void example01::Fib::Fib(int)");
+        f4 = allMethods.at("int example01::Fib::getNum()");
+        const al::World& world = al::World::get();
+        f5 = world.getMethodBySignature("int example01::Factor::factor(int)");
+        f6 = world.getMethodBySignature("void example01::Factor::Factor(int)");
+        f7 = world.getMethodBySignature("int example01::Factor::getNum()");
     }
 };
 
@@ -29,7 +31,7 @@ TEST_SUITE_BEGIN("testCPPMethod");
 TEST_CASE_FIXTURE(CPPMethodTestFixture, "testGetMethodSourceCode"
     * doctest::description("testing method source getting")) {
 
-    CHECK_EQ(allMethods.at("int main(int, const char **)")->getMethodSourceCode(),
+    CHECK_EQ(f1->getMethodSourceCode(),
              R"(int main(int argc, const char* argv[]) {
     AbstractFactor* f1 = new Factor(10);
     int a = 8;
@@ -42,7 +44,7 @@ TEST_CASE_FIXTURE(CPPMethodTestFixture, "testGetMethodSourceCode"
     return c + d + f + g;
 })");
 
-    CHECK_EQ(allMethods.at("int example01::Fib::fib(int)")->getMethodSourceCode(),
+    CHECK_EQ(f2->getMethodSourceCode(),
              R"(int Fib::fib(int i) {
         int a = 0, b = 1;
         while (i > 0) {
@@ -54,17 +56,17 @@ TEST_CASE_FIXTURE(CPPMethodTestFixture, "testGetMethodSourceCode"
         return a;
     })");
 
-    CHECK_EQ(allMethods.at("void example01::Fib::Fib(int)")->getMethodSourceCode(),
+    CHECK_EQ(f3->getMethodSourceCode(),
              R"(Fib::Fib(int n) {
         this->n = n;
     })");
 
-    CHECK_EQ(allMethods.at("int example01::Fib::getNum()")->getMethodSourceCode(),
+    CHECK_EQ(f4->getMethodSourceCode(),
              R"(int Fib::getNum() {
         return n;
     })");
 
-    CHECK_EQ(allMethods.at("int example01::Factor::factor(int)")->getMethodSourceCode(),
+    CHECK_EQ(f5->getMethodSourceCode(),
              R"(int Factor::factor(int i) {
         int res = 1;
         while (i > 1) {
@@ -74,12 +76,12 @@ TEST_CASE_FIXTURE(CPPMethodTestFixture, "testGetMethodSourceCode"
         return res;
     })");
 
-    CHECK_EQ(allMethods.at("void example01::Factor::Factor(int)")->getMethodSourceCode(),
+    CHECK_EQ(f6->getMethodSourceCode(),
              R"(Factor::Factor(int n) {
         this->n = n;
     })");
 
-    CHECK_EQ(allMethods.at("int example01::Factor::getNum()")->getMethodSourceCode(),
+    CHECK_EQ(f7->getMethodSourceCode(),
              R"(int Factor::getNum() {
         return n;
     })");
@@ -89,42 +91,83 @@ TEST_CASE_FIXTURE(CPPMethodTestFixture, "testGetMethodSourceCode"
 TEST_CASE_FIXTURE(CPPMethodTestFixture, "testGetDeclarationInformation"
     * doctest::description("testing method declaration information get")) {
 
-    CHECK_EQ(allMethods.at("int main(int, const char **)")->getParamCount(), 2);
-    CHECK_EQ(allMethods.at("int main(int, const char **)")->getParamName(0), "argc");
-    CHECK_EQ(allMethods.at("int main(int, const char **)")->getParamType(0).getName(), "int");
-    CHECK_EQ(allMethods.at("int main(int, const char **)")->getParamName(1), "argv");
-    CHECK_EQ(allMethods.at("int main(int, const char **)")->getParamType(1).getName(), "const char **");
-    CHECK_EQ(allMethods.at("int main(int, const char **)")->getReturnType().getName(), "int");
+    CHECK_EQ(f1->getParamCount(), 2);
+    CHECK_EQ(f1->getParamName(0), "argc");
+    CHECK_EQ(f1->getParamType(0)->getName(), "int");
+    CHECK_EQ(f1->getParamName(1), "argv");
+    CHECK_EQ(f1->getParamType(1)->getName(), "const char **");
+    std::vector<std::string> types;
+    for (const auto& type : f1->getParamTypes()) {
+        types.emplace_back(type->getName());
+    }
+    std::sort(types.begin(), types.end());
+    CHECK_EQ(types, std::vector<std::string>{"const char **" ,"int"});
+    CHECK_EQ(f1->getReturnType()->getName(), "int");
 
-    CHECK_EQ(allMethods.at("int example01::Fib::fib(int)")->getParamCount(), 1);
-    CHECK_EQ(allMethods.at("int example01::Fib::fib(int)")->getParamName(0), "i");
-    CHECK_EQ(allMethods.at("int example01::Fib::fib(int)")->getParamType(0).getName(), "int");
-    CHECK_EQ(allMethods.at("int example01::Fib::fib(int)")->getReturnType().getName(), "int");
+    CHECK_EQ(f2->getParamCount(), 1);
+    CHECK_EQ(f2->getParamName(0), "i");
+    CHECK_EQ(f2->getParamType(0)->getName(), "int");
+    CHECK_EQ(f2->getReturnType()->getName(), "int");
 
-    CHECK_EQ(allMethods.at("void example01::Fib::Fib(int)")->getParamCount(), 1);
-    CHECK_EQ(allMethods.at("void example01::Fib::Fib(int)")->getParamName(0), "n");
-    CHECK_EQ(allMethods.at("void example01::Fib::Fib(int)")->getParamType(0).getName(), "int");
-    CHECK_EQ(allMethods.at("void example01::Fib::Fib(int)")->getReturnType().getName(), "void");
+    CHECK_EQ(f3->getParamCount(), 1);
+    CHECK_EQ(f3->getParamName(0), "n");
+    CHECK_EQ(f3->getParamType(0)->getName(), "int");
+    CHECK_EQ(f3->getReturnType()->getName(), "void");
 
-    CHECK_EQ(allMethods.at("int example01::Fib::getNum()")->getParamCount(), 0);
-    CHECK_EQ(allMethods.at("int example01::Fib::getNum()")->getReturnType().getName(), "int");
+    CHECK_EQ(f4->getParamCount(), 0);
+    CHECK_EQ(f4->getReturnType()->getName(), "int");
 
-    CHECK_EQ(allMethods.at("int example01::Factor::factor(int)")->getParamCount(), 1);
-    CHECK_EQ(allMethods.at("int example01::Factor::factor(int)")->getParamName(0), "i");
-    CHECK_EQ(allMethods.at("int example01::Factor::factor(int)")->getParamType(0).getName(), "int");
-    CHECK_EQ(allMethods.at("int example01::Factor::factor(int)")->getReturnType().getName(), "int");
+    CHECK_EQ(f5->getParamCount(), 1);
+    CHECK_EQ(f5->getParamName(0), "i");
+    CHECK_EQ(f5->getParamType(0)->getName(), "int");
+    CHECK_EQ(f5->getReturnType()->getName(), "int");
 
-    CHECK_EQ(allMethods.at("void example01::Factor::Factor(int)")->getParamCount(), 1);
-    CHECK_EQ(allMethods.at("void example01::Factor::Factor(int)")->getParamName(0), "n");
-    CHECK_EQ(allMethods.at("void example01::Factor::Factor(int)")->getParamType(0).getName(), "int");
-    CHECK_EQ(allMethods.at("void example01::Factor::Factor(int)")->getReturnType().getName(), "void");
+    CHECK_EQ(f6->getParamCount(), 1);
+    CHECK_EQ(f6->getParamName(0), "n");
+    CHECK_EQ(f6->getParamType(0)->getName(), "int");
+    CHECK_EQ(f6->getReturnType()->getName(), "void");
 
-    CHECK_EQ(allMethods.at("int example01::Factor::getNum()")->getParamCount(), 0);
-    CHECK_EQ(allMethods.at("int example01::Factor::getNum()")->getReturnType().getName(), "int");
+    CHECK_EQ(f7->getParamCount(), 0);
+    CHECK_EQ(f7->getReturnType()->getName(), "int");
 
 }
 
+TEST_CASE_FIXTURE(CPPMethodTestFixture, "testMethodKindCheck"
+    * doctest::description("testing method kind checking")) {
+    CHECK(f1->isGlobalMethod());
+    CHECK_FALSE(f1->isClassStaticMethod());
+    CHECK_FALSE(f1->isClassMemberMethod());
+    CHECK_FALSE(f1->isVirtual());
 
+    CHECK_FALSE(f2->isGlobalMethod());
+    CHECK_FALSE(f2->isClassStaticMethod());
+    CHECK(f2->isClassMemberMethod());
+    CHECK(f2->isVirtual());
 
+    CHECK_FALSE(f3->isGlobalMethod());
+    CHECK_FALSE(f3->isClassStaticMethod());
+    CHECK(f3->isClassMemberMethod());
+    CHECK_FALSE(f3->isVirtual());
+
+    CHECK_FALSE(f4->isGlobalMethod());
+    CHECK_FALSE(f4->isClassStaticMethod());
+    CHECK(f4->isClassMemberMethod());
+    CHECK(f4->isVirtual());
+
+    CHECK_FALSE(f5->isGlobalMethod());
+    CHECK_FALSE(f5->isClassStaticMethod());
+    CHECK(f5->isClassMemberMethod());
+    CHECK(f5->isVirtual());
+
+    CHECK_FALSE(f6->isGlobalMethod());
+    CHECK_FALSE(f6->isClassStaticMethod());
+    CHECK(f6->isClassMemberMethod());
+    CHECK_FALSE(f6->isVirtual());
+
+    CHECK_FALSE(f7->isGlobalMethod());
+    CHECK_FALSE(f7->isClassStaticMethod());
+    CHECK(f7->isClassMemberMethod());
+    CHECK(f7->isVirtual());
+}
 
 TEST_SUITE_END();

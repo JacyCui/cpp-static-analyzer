@@ -9,7 +9,7 @@ namespace analyzer::util {
 
     /**
      * @class Logger
-     * @brief a logger class to encapsulate all kinds of information
+     * @brief Used to output different kinds of log information
      */
     class Logger final {
 

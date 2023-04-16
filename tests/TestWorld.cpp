@@ -14,7 +14,7 @@ class WorldTestFixture {
 private:
     static const al::World& initializeAndGet()
     {
-        al::World::initialize(std::string("resources/example01/src"),
+        al::World::initialize("resources/example01/src",
                               "resources/example01/include");
         return al::World::get();
     }
@@ -77,11 +77,11 @@ TEST_CASE_FIXTURE(WorldTestFixture, "testDumpAST" * doctest::description("testin
     llvm::raw_string_ostream output(str);
     world.dumpAST(output);
     world.dumpAST(std::string("resources/example01/src/factor/factor.cpp"), output);
-    uint64_t t1 = world.getLogger().getOutStream()->tell();
+    uint64_t t1 = analyzer::World::getLogger().getOutStream()->tell();
     world.dumpAST(std::string("resources/example01/src/test.cpp"), output);
-    uint64_t t2 = world.getLogger().getOutStream()->tell();
+    uint64_t t2 = analyzer::World::getLogger().getOutStream()->tell();
     CHECK_NE(t1, t2);
-    //world.getLogger().Debug(str);
+    //analyzer::World::getLogger().Debug(str);
 }
 
 TEST_CASE_FIXTURE(WorldTestFixture, "testGetAllMethods" * doctest::description("testing function list building"))

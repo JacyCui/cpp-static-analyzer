@@ -18,16 +18,16 @@ namespace analyzer {
 
     /**
      * @class World
-     * @brief The program information
+     * @brief Manages the whole-program information of the program being analyzed.
      */
     class World final {
     public:
 
         /**
          * @brief Initialize the word the whole program, including ast, cfg and call graph
-         * @param[in] sourceDir the directory path of all source files
-         * @param[in] includeDir the directory path of all
-         * @param[in] std language standard, e.g. c++98, c++11, c99
+         * @param sourceDir the directory path of all source files
+         * @param includeDir the directory path of all
+         * @param std language standard, e.g. c++98, c++11, c99
          */
         static void initialize(const std::string& sourceDir, const std::string& includeDir="",
                                const std::string& std=std::string("c++98"));
@@ -68,7 +68,7 @@ namespace analyzer {
 
         /**
          * @brief pretty dump asts of a given source file
-         * @param[in] fileName relative path of the source file from current working directory
+         * @param fileName relative path of the source file from current working directory
          * @param[out] out the llvm raw out stream (e.g. outs(), errs() or other user defined streams)
          */
         void dumpAST(const std::string& fileName, llvm::raw_ostream& out) const;
@@ -79,9 +79,21 @@ namespace analyzer {
         [[nodiscard]] const std::unordered_map<std::string, std::shared_ptr<lang::CPPMethod>>& getAllMethods() const;
 
         /**
+         * get the cpp method by it's method
+         * @param signature signature string (e.g. int add(int, int))
+         * @return a cpp method, nullptr if it doesn't exist
+         */
+        [[nodiscard]] std::shared_ptr<lang::CPPMethod> getMethodBySignature(const std::string& signature) const;
+
+        /**
          * @return return the main method
          */
-        [[nodiscard]] const std::shared_ptr<lang::CPPMethod> getMainMethod() const;
+        [[nodiscard]] std::shared_ptr<lang::CPPMethod> getMainMethod() const;
+
+        /**
+         * @return the ir builder of this world
+         */
+        [[nodiscard]] const std::unique_ptr<ir::IRBuilder>& getIRBuilder() const;
 
     private:
 
@@ -101,9 +113,19 @@ namespace analyzer {
 
         std::shared_ptr<lang::CPPMethod> mainMethod; ///< main method
 
+        std::unique_ptr<ir::IRBuilder> irBuilder;
+
+        /**
+         * @brief Construct the world
+         * @param sourceCode cpp or c source file and corresponding code string
+         * @param args compiler arguments
+         */
         World(std::unordered_map<std::string, std::string>&& sourceCode,
               std::vector<std::string>&& args);
 
+        /**
+         * @brief
+         */
         void buildMethodMap();
 
         World(const World&) = delete;
@@ -113,7 +135,7 @@ namespace analyzer {
 
     /**
      * @brief get c/cpp source codes recursively from a source file directory
-     * @param[in] sourceDir the directory containing all the source files
+     * @param sourceDir the directory containing all the source files
      * @return a map from filename(relative, end with .c / .cpp / .cxx / .cc) to its contents
      */
     std::unordered_map<std::string, std::string> loadSourceCodes(const std::string& sourceDir);
@@ -122,7 +144,7 @@ namespace analyzer {
 
         /**
          * @brief generate string signature of a function decl ast
-         * @param[in] functionDecl function declaration ast
+         * @param functionDecl function declaration ast
          * @return a string representation of signature
          */
         std::string generateFunctionSignature(const clang::FunctionDecl* functionDecl);

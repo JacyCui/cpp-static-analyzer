@@ -71,6 +71,7 @@ namespace analyzer {
         }
         mainMethod = nullptr;
         buildMethodMap();
+        irBuilder = std::make_unique<ir::DefaultIRBuilder>();
     }
 
     void World::buildMethodMap()
@@ -160,9 +161,22 @@ namespace analyzer {
         return allMethods;
     }
 
-    const std::shared_ptr<lang::CPPMethod> World::getMainMethod() const
+    std::shared_ptr<lang::CPPMethod> World::getMethodBySignature(const std::string& signature) const
+    {
+        if (allMethods.find(signature) == allMethods.end()) {
+            return nullptr;
+        }
+        return allMethods.at(signature);
+    }
+
+    std::shared_ptr<lang::CPPMethod> World::getMainMethod() const
     {
         return mainMethod;
+    }
+
+    const std::unique_ptr<ir::IRBuilder>& World::getIRBuilder() const
+    {
+        return irBuilder;
     }
 
     // ----------

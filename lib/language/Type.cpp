@@ -5,12 +5,17 @@ namespace analyzer::language {
     Type::Type(const clang::QualType &qualType)
         : qualType(qualType)
     {
-
+        typeName = qualType.getAsString();
     }
 
-    std::string Type::getName()
+    const std::string& Type::getName() const
     {
-        return qualType.getAsString();
+        return typeName;
+    }
+
+    const clang::QualType& Type::getQualType() const
+    {
+        return qualType;
     }
 
 } // language

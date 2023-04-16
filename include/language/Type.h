@@ -7,26 +7,36 @@ namespace analyzer::language {
 
     /**
      * @class Type
-     * @brief a class representing the type
+     * @brief Represents the type
      */
-    class Type final {
+    class Type {
 
     public:
 
         /**
          * @return the string representation of this type
          */
-        std::string getName();
+        [[nodiscard]] const std::string& getName() const;
 
         // Functions below should not be called from clients
 
         /**
-         * construct a wrapper for clang::QualType
+         * @return the qualified clang type
+         */
+        [[nodiscard]] const clang::QualType& getQualType() const;
+
+        /**
+         * @brief construct a wrapper for clang::QualType
          * @param qualType a clang qualType object
          */
         explicit Type(const clang::QualType& qualType);
 
+        Type(const Type&) = delete;
+        Type& operator=(const Type&) = delete;
+
     private:
+
+        std::string typeName; ///< type name string
 
         clang::QualType qualType; ///< a qualified type
     };

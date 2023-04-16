@@ -1,14 +1,25 @@
 #include <clang/Lex/Lexer.h>
 
+#include <utility>
+
+#include "World.h"
 #include "language/CPPMethod.h"
 
 namespace analyzer::language {
 
     CPPMethod::CPPMethod(const std::unique_ptr<clang::ASTUnit> &astUnit,
-                         const clang::FunctionDecl *funcDecl, const std::string& signatureStr)
-        :astUnit(astUnit), funcDecl(funcDecl), signatureStr(signatureStr)
+                         const clang::FunctionDecl *funcDecl, std::string  signatureStr)
+        :astUnit(astUnit), funcDecl(funcDecl), signatureStr(std::move(signatureStr))
     {
-
+        paramCount = funcDecl->getNumParams();
+        for (unsigned int i = 0; i < paramCount; i++) {
+            paramTypes.emplace_back(std::make_shared<Type>(funcDecl->getParamDecl(i)->getType()));
+            paramNames.emplace_back(funcDecl->getParamDecl(i)->getNameAsString());
+        }
+        returnType = std::make_shared<Type>(funcDecl->getReturnType());
+        clangCFG = clang::CFG::buildCFG(funcDecl, funcDecl->getBody(),
+                                        &funcDecl->getASTContext(),
+                                        clang::CFG::BuildOptions());
     }
 
     const std::unique_ptr<clang::ASTUnit>& CPPMethod::getASTUnit() const
@@ -22,12 +33,17 @@ namespace analyzer::language {
         return funcDecl;
     }
 
+    const std::unique_ptr<clang::CFG>& CPPMethod::getClangCFG() const
+    {
+        return clangCFG;
+    }
+
     const std::string& CPPMethod::getMethodSignatureAsString() const
     {
         return signatureStr;
     }
 
-    const std::string CPPMethod::getMethodSourceCode() const
+    std::string CPPMethod::getMethodSourceCode() const
     {
         clang::SourceRange&& range = funcDecl->getSourceRange();
         const clang::SourceManager& sourceManager = astUnit->getSourceManager();
@@ -38,25 +54,60 @@ namespace analyzer::language {
         return sourceCode.str();
     }
 
-    int CPPMethod::getParamCount() const
+    std::size_t CPPMethod::getParamCount() const
     {
-        return funcDecl->getNumParams();
+        return paramCount;
     }
 
-    Type CPPMethod::getParamType(int i) const
+    const std::vector<std::shared_ptr<Type>>& CPPMethod::getParamTypes() const
     {
-        return Type(funcDecl->getParamDecl(i)->getType());
+        return paramTypes;
     }
 
-    std::string CPPMethod::getParamName(int i) const
+    std::shared_ptr<Type> CPPMethod::getParamType(int i) const
     {
-        return funcDecl->getParamDecl(i)->getNameAsString();
+        return paramTypes.at(i);
     }
 
-    Type CPPMethod::getReturnType() const
+    const std::string& CPPMethod::getParamName(int i) const
     {
-        return Type(funcDecl->getReturnType());
+        return paramNames.at(i);
     }
 
+    std::shared_ptr<Type> CPPMethod::getReturnType() const
+    {
+        return returnType;
+    }
+
+    std::shared_ptr<air::IR> CPPMethod::getIR()
+    {
+        if (!myIR) {
+            myIR = World::get().getIRBuilder()->buildIR(*this);
+        }
+        return myIR;
+    }
+
+    bool CPPMethod::isGlobalMethod() const
+    {
+        return funcDecl->isGlobal();
+    }
+
+    bool CPPMethod::isClassStaticMethod() const
+    {
+        return funcDecl->isStatic();
+    }
+
+    bool CPPMethod::isClassMemberMethod() const
+    {
+        return funcDecl->isCXXClassMember();
+    }
+
+    bool CPPMethod::isVirtual() const
+    {
+        if(const auto* cxxMethodDecl = clang::dyn_cast<clang::CXXMethodDecl>(funcDecl)) {
+            return cxxMethodDecl->isVirtual();
+        }
+        return false;
+    }
 
 } // language
