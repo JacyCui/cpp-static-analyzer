@@ -29,7 +29,6 @@ namespace analyzer {
 
     void World::initialize(const std::string& sourceDir, const std::string& includeDir, const std::string& std)
     {
-        logger.Progress("Start building the world...");
         if (theWorld != nullptr) {
             delete theWorld;
             theWorld = nullptr;
@@ -41,7 +40,7 @@ namespace analyzer {
             theWorld = new World(loadSourceCodes(sourceDir),
                                  std::vector<std::string>{"-I" + includeDir, "-std=" + std});
         }
-        logger.Success("World building finished!");
+        theWorld->build();
     }
 
     util::Logger& World::getLogger()
@@ -59,6 +58,28 @@ namespace analyzer {
     World::World(std::unordered_map<std::string, std::string>&& sourceCode, std::vector<std::string>&& args)
         :sourceCode(std::move(sourceCode)), args(std::move(args))
     {
+
+    }
+
+    void World::build() {
+        logger.Progress("Start building the world...");
+
+        logger.Progress("Setting the builders ...");
+
+        logger.Info("Using the default ir builder ...");
+        irBuilder = std::make_unique<ir::DefaultIRBuilder>();
+
+        logger.Info("Using the default type builder ...");
+        typeBuilder = std::make_unique<lang::DefaultTypeBuilder>();
+
+        logger.Info("Using the default variable builder ...");
+        varBuilder = std::make_unique<ir::DefaultVarBuilder>();
+
+        logger.Info("Using the default statement builder ...");
+        stmtBuilder = std::make_unique<ir::DefaultStmtBuilder>();
+
+        logger.Success("Builders setting finished ...");
+
         for (const auto& [filename, content] : this->sourceCode) {
             uint64_t t1 = llvm::errs().tell();
             std::unique_ptr<clang::ASTUnit> p = tl::buildASTFromCodeWithArgs(content, this->args, filename);
@@ -69,9 +90,11 @@ namespace analyzer {
             }
             astList.emplace_back(std::move(p));
         }
+
         mainMethod = nullptr;
         buildMethodMap();
-        irBuilder = std::make_unique<ir::DefaultIRBuilder>();
+
+        logger.Success("World building finished!");
     }
 
     void World::buildMethodMap()
@@ -108,13 +131,13 @@ namespace analyzer {
                     if (fd->getNameAsString() == "main") {
                         if (!mainMethod) {
                             mainMethod = std::make_shared<lang::CPPMethod>(ast, fd, sig);
-                            allMethods.insert_or_assign(sig, mainMethod);
+                            allMethods.emplace(sig, mainMethod);
                         } else {
                             logger.Error("Duplicate definition of main function!");
                             throw std::runtime_error("Duplicate definition of main function!");
                         }
                     } else {
-                        allMethods.insert_or_assign(sig, std::make_shared<lang::CPPMethod>(ast, fd, sig));
+                        allMethods.emplace(sig, std::make_shared<lang::CPPMethod>(ast, fd, sig));
                     }
                 } else {
                     logger.Warning("Found another definition for " + sig + ", this definition is ignored!");
@@ -171,12 +194,30 @@ namespace analyzer {
 
     std::shared_ptr<lang::CPPMethod> World::getMainMethod() const
     {
-        return mainMethod;
+        if (mainMethod) {
+            return mainMethod;
+        }
+        return nullptr;
     }
 
     const std::unique_ptr<ir::IRBuilder>& World::getIRBuilder() const
     {
         return irBuilder;
+    }
+
+    const std::unique_ptr<lang::TypeBuilder>& World::getTypeBuilder() const
+    {
+        return typeBuilder;
+    }
+
+    const std::unique_ptr<ir::VarBuilder>& World::getVarBuilder() const
+    {
+        return varBuilder;
+    }
+
+    const std::unique_ptr<ir::StmtBuilder>& World::getStmtBuilder() const
+    {
+        return stmtBuilder;
     }
 
     // ----------

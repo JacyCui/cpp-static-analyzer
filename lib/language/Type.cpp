@@ -2,18 +2,18 @@
 
 namespace analyzer::language {
 
-    Type::Type(const clang::QualType &qualType)
+    ClangTypeWrapper::ClangTypeWrapper(const clang::QualType &qualType)
         : qualType(qualType)
     {
         typeName = qualType.getAsString();
     }
 
-    const std::string& Type::getName() const
+    const std::string& ClangTypeWrapper::getName() const
     {
         return typeName;
     }
 
-    const clang::QualType& Type::getQualType() const
+    const clang::QualType& ClangTypeWrapper::getQualType() const
     {
         return qualType;
     }

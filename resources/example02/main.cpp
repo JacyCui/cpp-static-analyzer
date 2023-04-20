@@ -1,24 +1,24 @@
-int main() {
-    int a, b, c, d;
-    a = 2;
-    if (a > 1) {
-        b = 1;
+int test1(int a, int b) {
+    int c, d;
+    c = a + b;
+    d = a - b;
+    if (c > d) {
+        return c;
     } else {
-        b = 0;
+        return d;
     }
-    c = a / b;
-    switch (c) {
-        case 1:
-            d = 3;
-            break;
-        case 2:
-            d = 4;
-            break;
-        default:
-            d = 1;
+}
+
+int main(int argc, char* argv[]) {
+    int a;
+    int b;
+    int c;
+    a = 1;
+    if (a > 1) {
+        b = 2;
+    } else {
+        b = 3;
     }
-    int e[10][10] = {0};
-    int f;
-    f = e[3][3];
-    return f;
+    c = b;
+    return 0;
 }

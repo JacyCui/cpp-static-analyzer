@@ -5,11 +5,10 @@
 #include <memory>
 
 #include <clang/Frontend/ASTUnit.h>
+#include <clang/Analysis/CFG.h>
 
 #include "language/Type.h"
 #include "ir/IR.h"
-
-namespace air = analyzer::ir;
 
 namespace analyzer::language {
 
@@ -33,6 +32,11 @@ namespace analyzer::language {
         [[nodiscard]] std::string getMethodSourceCode() const;
 
         /**
+         * @return the relative path of the file containing this method
+         */
+        [[nodiscard]] std::string getContainingFilePath() const;
+
+        /**
          * @return the number of parameters of this method
          */
         [[nodiscard]] std::size_t getParamCount() const;
@@ -47,14 +51,14 @@ namespace analyzer::language {
          * @param i the index integer
          * @return type of the parameter
          */
-        [[nodiscard]] std::shared_ptr<Type> getParamType(int i) const;
+        [[nodiscard]] std::shared_ptr<Type> getParamType(std::size_t i) const;
 
         /**
          * @brief get the name of the ith parameter
          * @param i the index integer
          * @return name of the parameter
          */
-        [[nodiscard]] const std::string& getParamName(int i) const;
+        [[nodiscard]] const std::string& getParamName(std::size_t i) const;
 
         /**
          * @return the return type of the method
@@ -64,7 +68,7 @@ namespace analyzer::language {
         /**
          * @return the intermediate representation of this method body
          */
-        [[nodiscard]] std::shared_ptr<air::IR> getIR();
+        [[nodiscard]] std::shared_ptr<ir::IR> getIR();
 
         /**
          * @return whether the method is a global method
@@ -126,7 +130,7 @@ namespace analyzer::language {
 
         std::shared_ptr<Type> returnType; ///< the return type
 
-        std::shared_ptr<air::IR> myIR; ///< intermediate representation of the function body
+        std::shared_ptr<ir::IR> myIR; ///< intermediate representation of the function body
 
         const std::unique_ptr<clang::ASTUnit>& astUnit; ///< a clang ast unit
 

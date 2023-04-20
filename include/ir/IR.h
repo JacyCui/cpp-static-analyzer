@@ -2,25 +2,34 @@
 #define STATIC_ANALYZER_IR_H
 
 #include <memory>
+#include <clang/AST/Decl.h>
 
-#include <clang/Analysis/CFG.h>
-
-#include "Stmt.h"
+#include "ir/Stmt.h"
+#include "analysis/graph/CFG.h"
 
 namespace analyzer::language {
     class CPPMethod;
 }
 
-namespace lang = analyzer::language;
-
 namespace analyzer::ir {
+
+    namespace lang = language;
+    namespace graph = analysis::graph;
 
     class IR {
     public:
 
         [[nodiscard]] virtual const lang::CPPMethod& getMethod() const = 0;
 
+        [[nodiscard]] virtual std::shared_ptr<graph::CFG> getCFG() const = 0;
 
+        [[nodiscard]] virtual std::vector<std::shared_ptr<Var>> getParams() const = 0;
+
+        [[nodiscard]] virtual std::vector<std::shared_ptr<Var>> getVars() const = 0;
+
+        [[nodiscard]] virtual std::shared_ptr<Var> getVarByIdentity(std::uint64_t id) const = 0;
+
+        [[nodiscard]] virtual std::vector<std::shared_ptr<Stmt>> getStmts() const = 0;
 
     };
 
@@ -29,25 +38,33 @@ namespace analyzer::ir {
 
         [[nodiscard]] const lang::CPPMethod& getMethod() const override;
 
-        DefaultIR(const lang::CPPMethod& method, std::shared_ptr<Var> thisVar,
-                  std::vector<std::shared_ptr<Var>> params,
-                  std::vector<std::shared_ptr<Var>> vars,
-                  std::vector<std::shared_ptr<Var>> returnVars,
-                  std::vector<std::shared_ptr<Stmt>> stmts);
+        [[nodiscard]] std::shared_ptr<graph::CFG> getCFG() const override;
+
+        [[nodiscard]] virtual std::vector<std::shared_ptr<Var>> getParams() const override;
+
+        [[nodiscard]] virtual std::vector<std::shared_ptr<Var>> getVars() const override;
+
+        [[nodiscard]] virtual std::shared_ptr<Var> getVarByIdentity(std::uint64_t id) const override;
+
+        [[nodiscard]] virtual std::vector<std::shared_ptr<Stmt>> getStmts() const override;
+
+        DefaultIR(const lang::CPPMethod& method,
+                  const std::vector<std::shared_ptr<Var>>& params,
+                  const std::unordered_map<std::uint64_t, std::shared_ptr<Var>>& vars,
+                  const std::vector<std::shared_ptr<Stmt>>& stmts,
+                  const std::shared_ptr<graph::CFG>& cfg);
 
     private:
 
         const lang::CPPMethod& method; ///< the method this ir is representing
 
-        std::shared_ptr<Var> thisVar;
-
         const std::vector<std::shared_ptr<Var>> params;
 
-        const std::vector<std::shared_ptr<Var>> vars;
-
-        const std::vector<std::shared_ptr<Var>> returnVars;
+        const std::unordered_map<std::uint64_t, std::shared_ptr<Var>> vars;
 
         const std::vector<std::shared_ptr<Stmt>> stmts;
+
+        std::shared_ptr<graph::CFG> cfg;
 
     };
 
@@ -57,12 +74,14 @@ namespace analyzer::ir {
      */
     class IRBuilder {
     public:
+
         /**
          * @brief Builds IR for concrete methods.
          * @param method the method used to build ir
          * @return the intermediate representation of method
          */
         [[nodiscard]] virtual std::shared_ptr<IR> buildIR(const lang::CPPMethod& method) const = 0;
+
     };
 
     /**
@@ -71,22 +90,34 @@ namespace analyzer::ir {
      */
     class DefaultIRBuilder: public IRBuilder {
     public:
+
         [[nodiscard]] std::shared_ptr<IR> buildIR(const lang::CPPMethod& method) const override;
+
     };
 
     class DefaultIRBuilderHelper {
     public:
+
         explicit DefaultIRBuilderHelper(const lang::CPPMethod& method);
 
         std::shared_ptr<IR> build();
 
     private:
+
         const lang::CPPMethod& method;
-        std::shared_ptr<Var> thisVar;
+
         std::vector<std::shared_ptr<Var>> params;
-        std::vector<std::shared_ptr<Var>> vars;
-        std::vector<std::shared_ptr<Var>> returnVars;
-        std::vector<std::shared_ptr<Stmt>> stmts;
+
+        std::unordered_map<std::uint64_t, std::shared_ptr<Var>> vars;
+
+        std::unordered_map<const clang::Stmt*, std::shared_ptr<Stmt>> stmts;
+
+        void buildParams();
+
+        void buildStmts();
+
+        void buildEdges(std::shared_ptr<graph::DefaultCFG>& cfg);
+
     };
 
 } // ir

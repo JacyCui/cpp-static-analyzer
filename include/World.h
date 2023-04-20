@@ -10,6 +10,7 @@
 #include <clang/Frontend/ASTUnit.h>
 
 #include "language/CPPMethod.h"
+#include "ir/IR.h"
 #include "util/Logger.h"
 
 namespace analyzer {
@@ -17,10 +18,21 @@ namespace analyzer {
     namespace lang = language;
 
     /**
+     * @class WorldBuilder
+     * @brief Interface for the world builder
+     */
+    class WorldBuilder {
+        /**
+         * @brief build the world
+         */
+        virtual void build() = 0;
+    };
+
+    /**
      * @class World
      * @brief Manages the whole-program information of the program being analyzed.
      */
-    class World final {
+    class World final: public WorldBuilder {
     public:
 
         /**
@@ -49,6 +61,8 @@ namespace analyzer {
         static void setLogger(util::Logger newLogger);
 
     public:
+
+        void build() override;
 
         /**
          * @return a map from source file path to source file content
@@ -86,14 +100,30 @@ namespace analyzer {
         [[nodiscard]] std::shared_ptr<lang::CPPMethod> getMethodBySignature(const std::string& signature) const;
 
         /**
-         * @return return the main method
+         * @return return the main method (nullptr if there's no main method)
          */
         [[nodiscard]] std::shared_ptr<lang::CPPMethod> getMainMethod() const;
 
         /**
-         * @return the ir builder of this world
+         * @return the global ir builder of this world
          */
         [[nodiscard]] const std::unique_ptr<ir::IRBuilder>& getIRBuilder() const;
+
+        /**
+         * @return the global type builder of this world
+         */
+        [[nodiscard]] const std::unique_ptr<lang::TypeBuilder>& getTypeBuilder() const;
+
+        /**
+         * @return the global variable builder of this world
+         */
+        [[nodiscard]] const std::unique_ptr<ir::VarBuilder>& getVarBuilder() const;
+
+        /**
+         * @return the global statement builder of this world
+         * @return
+         */
+        [[nodiscard]] const std::unique_ptr<ir::StmtBuilder>& getStmtBuilder() const;
 
     private:
 
@@ -113,7 +143,13 @@ namespace analyzer {
 
         std::shared_ptr<lang::CPPMethod> mainMethod; ///< main method
 
-        std::unique_ptr<ir::IRBuilder> irBuilder;
+        std::unique_ptr<ir::IRBuilder> irBuilder; ///< global ir builder
+
+        std::unique_ptr<lang::TypeBuilder> typeBuilder; ///< global type builder
+
+        std::unique_ptr<ir::VarBuilder> varBuilder; ///< global variable builder
+
+        std::unique_ptr<ir::StmtBuilder> stmtBuilder; ///< global statement builder
 
         /**
          * @brief Construct the world
@@ -124,7 +160,7 @@ namespace analyzer {
               std::vector<std::string>&& args);
 
         /**
-         * @brief
+         * @brief build a map from method signature to CPPMethod
          */
         void buildMethodMap();
 

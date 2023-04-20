@@ -28,8 +28,25 @@ public:
 
 TEST_SUITE_BEGIN("testCPPMethod");
 
+TEST_CASE_FIXTURE(CPPMethodTestFixture, "testGetContainingFilePath"
+    * doctest::description("testing method containing file getting")) {
+
+    al::World::getLogger().Debug("Testing method containing file getting ...");
+
+    CHECK_EQ(f1->getContainingFilePath(), "resources/example01/src/main.cpp");
+    CHECK_EQ(f2->getContainingFilePath(), "resources/example01/src/fib/fib.cpp");
+    CHECK_EQ(f3->getContainingFilePath(), "resources/example01/src/fib/fib.cpp");
+    CHECK_EQ(f4->getContainingFilePath(), "resources/example01/src/fib/fib.cpp");
+    CHECK_EQ(f5->getContainingFilePath(), "resources/example01/src/factor/factor.cpp");
+    CHECK_EQ(f6->getContainingFilePath(), "resources/example01/src/factor/factor.cpp");
+    CHECK_EQ(f7->getContainingFilePath(), "resources/example01/src/factor/factor.cpp");
+
+}
+
 TEST_CASE_FIXTURE(CPPMethodTestFixture, "testGetMethodSourceCode"
     * doctest::description("testing method source getting")) {
+
+    al::World::getLogger().Debug("Testing method source getting ...");
 
     CHECK_EQ(f1->getMethodSourceCode(),
              R"(int main(int argc, const char* argv[]) {
@@ -91,6 +108,8 @@ TEST_CASE_FIXTURE(CPPMethodTestFixture, "testGetMethodSourceCode"
 TEST_CASE_FIXTURE(CPPMethodTestFixture, "testGetDeclarationInformation"
     * doctest::description("testing method declaration information get")) {
 
+    al::World::getLogger().Debug("Testing method declaration information get ...");
+
     CHECK_EQ(f1->getParamCount(), 2);
     CHECK_EQ(f1->getParamName(0), "argc");
     CHECK_EQ(f1->getParamType(0)->getName(), "int");
@@ -130,10 +149,18 @@ TEST_CASE_FIXTURE(CPPMethodTestFixture, "testGetDeclarationInformation"
     CHECK_EQ(f7->getParamCount(), 0);
     CHECK_EQ(f7->getReturnType()->getName(), "int");
 
+    const auto* f8 = clang::dyn_cast<clang::CXXMethodDecl>(f7->getFunctionDecl());
+    al::World::getLogger().Debug(f8->getThisObjectType().getAsString());
+    al::World::getLogger().Debug(f7->getMethodSignatureAsString());
+    al::World::getLogger().Debug(std::to_string(f8->getNumParams()));
+
 }
 
 TEST_CASE_FIXTURE(CPPMethodTestFixture, "testMethodKindCheck"
     * doctest::description("testing method kind checking")) {
+
+    al::World::getLogger().Debug("Testing method kind checking ...");
+
     CHECK(f1->isGlobalMethod());
     CHECK_FALSE(f1->isClassStaticMethod());
     CHECK_FALSE(f1->isClassMemberMethod());
@@ -168,6 +195,7 @@ TEST_CASE_FIXTURE(CPPMethodTestFixture, "testMethodKindCheck"
     CHECK_FALSE(f7->isClassStaticMethod());
     CHECK(f7->isClassMemberMethod());
     CHECK(f7->isVirtual());
+
 }
 
 TEST_SUITE_END();

@@ -9,14 +9,16 @@ namespace analyzer::language {
 
     CPPMethod::CPPMethod(const std::unique_ptr<clang::ASTUnit> &astUnit,
                          const clang::FunctionDecl *funcDecl, std::string  signatureStr)
-        :astUnit(astUnit), funcDecl(funcDecl), signatureStr(std::move(signatureStr))
+        :astUnit(astUnit), funcDecl(funcDecl), signatureStr(std::move(signatureStr)), myIR(nullptr)
     {
         paramCount = funcDecl->getNumParams();
         for (unsigned int i = 0; i < paramCount; i++) {
-            paramTypes.emplace_back(std::make_shared<Type>(funcDecl->getParamDecl(i)->getType()));
+            paramTypes.emplace_back(
+                    World::get().getTypeBuilder()->buildType(funcDecl->getParamDecl(i)->getType())
+                    );
             paramNames.emplace_back(funcDecl->getParamDecl(i)->getNameAsString());
         }
-        returnType = std::make_shared<Type>(funcDecl->getReturnType());
+        returnType = World::get().getTypeBuilder()->buildType(funcDecl->getReturnType());
         clangCFG = clang::CFG::buildCFG(funcDecl, funcDecl->getBody(),
                                         &funcDecl->getASTContext(),
                                         clang::CFG::BuildOptions());
@@ -54,6 +56,11 @@ namespace analyzer::language {
         return sourceCode.str();
     }
 
+    std::string CPPMethod::getContainingFilePath() const
+    {
+        return astUnit->getMainFileName().str();
+    }
+
     std::size_t CPPMethod::getParamCount() const
     {
         return paramCount;
@@ -64,12 +71,12 @@ namespace analyzer::language {
         return paramTypes;
     }
 
-    std::shared_ptr<Type> CPPMethod::getParamType(int i) const
+    std::shared_ptr<Type> CPPMethod::getParamType(std::size_t i) const
     {
         return paramTypes.at(i);
     }
 
-    const std::string& CPPMethod::getParamName(int i) const
+    const std::string& CPPMethod::getParamName(std::size_t i) const
     {
         return paramNames.at(i);
     }
@@ -79,7 +86,7 @@ namespace analyzer::language {
         return returnType;
     }
 
-    std::shared_ptr<air::IR> CPPMethod::getIR()
+    std::shared_ptr<ir::IR> CPPMethod::getIR()
     {
         if (!myIR) {
             myIR = World::get().getIRBuilder()->buildIR(*this);
