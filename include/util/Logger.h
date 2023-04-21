@@ -31,12 +31,12 @@ namespace analyzer::util {
          * @brief get the current output stream of the logger
          * @return pointer to an output stream
          */
-        llvm::raw_ostream* getOutStream() const;
+        [[nodiscard]] llvm::raw_ostream* getOutStream() const;
 
         /**
          * @return whether this logger is enabled
          */
-        bool isEnabled() const;
+        [[nodiscard]] bool isEnabled() const;
 
         /**
          * @brief enable this logger

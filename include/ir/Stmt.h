@@ -64,6 +64,10 @@ namespace analyzer::ir {
 
     };
 
+    /**
+     * @class NopStmt
+     * @brief A default implementation for an empty statement
+     */
     class NopStmt: public Stmt {
     public:
 
@@ -83,16 +87,19 @@ namespace analyzer::ir {
 
         [[nodiscard]] std::string str() const override;
 
-        [[nodiscard]] virtual const clang::Stmt* getClangStmt() const override;
+        [[nodiscard]] const clang::Stmt* getClangStmt() const override;
 
+        /**
+         * @brief construct an empty statement in a given method
+         * @param method a cpp method
+         */
         explicit NopStmt(const lang::CPPMethod& method);
 
     private:
 
-        const lang::CPPMethod& method;
+        const lang::CPPMethod& method; ///< the method containing this empty statement
 
     };
-
 
     /**
      * @class StmtBuilder
@@ -145,27 +152,32 @@ namespace analyzer::ir {
 
         [[nodiscard]] const clang::Stmt* getClangStmt() const override;
 
+        /**
+         * @brief Construct a statement of method by wrapping a clang statement
+         * @param method the method containing this method
+         * @param clangStmt a clang AST node of type Stmt
+         */
         ClangStmtWrapper(const lang::CPPMethod& method, const clang::Stmt* clangStmt);
 
     private:
 
-        const clang::Stmt* clangStmt;
+        const clang::Stmt* clangStmt; ///< the corresponding clang ast node
 
-        const lang::CPPMethod& method;
+        const lang::CPPMethod& method; ///< thd cpp method containing this statement
 
-        std::unordered_set<std::shared_ptr<Var>> uses;
+        std::unordered_set<std::shared_ptr<Var>> uses; ///< the variables used in this statement
 
-        std::unordered_set<std::shared_ptr<Var>> defs;
+        std::unordered_set<std::shared_ptr<Var>> defs; ///< the variables defined in this statement
 
-        int startLine;
+        int startLine; ///< the start line of this statement
 
-        int startColumn;
+        int startColumn; ///< the start column of this statement
 
-        int endLine;
+        int endLine; ///< the end line of this statement
 
-        int endColumn;
+        int endColumn; ///< the end column of this statement
 
-        std::string source;
+        std::string source; ///< the source code of this statement
 
     };
 

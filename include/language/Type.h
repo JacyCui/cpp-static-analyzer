@@ -28,6 +28,8 @@ namespace analyzer::language {
 
         [[nodiscard]] const std::string& getName() const override;
 
+        // the method below should not be called from user
+
         /**
          * @return the qualified clang type
          */
@@ -40,8 +42,11 @@ namespace analyzer::language {
         explicit ClangTypeWrapper(const clang::QualType& qualType);
 
     private:
+
         std::string typeName; ///< type name string
+
         clang::QualType qualType; ///< a qualified type
+
     };
 
     /**
@@ -66,6 +71,8 @@ namespace analyzer::language {
      */
     class DefaultTypeBuilder: public TypeBuilder {
     public:
+
+        // the method below should not be called from user
 
         [[nodiscard]] std::shared_ptr<Type> buildType(const clang::QualType& qualType) override;
 

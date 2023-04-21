@@ -47,7 +47,7 @@ namespace analyzer::analysis::graph {
     };
 
     /**
-     * @brief the interface for a statement CFG
+     * @brief the interface for a CFG using statements as its nodes
      * @class CFG
      */
     class CFG {
@@ -115,6 +115,10 @@ namespace analyzer::analysis::graph {
         [[nodiscard]] virtual std::size_t getEdgeNum() const = 0;
     };
 
+    /**
+     * @class DefaultCFGEdge
+     * @brief the default implementation of a cfg edge
+     */
     class DefaultCFGEdge: public CFGEdge {
     public:
 
@@ -123,6 +127,8 @@ namespace analyzer::analysis::graph {
         [[nodiscard]] std::shared_ptr<ir::Stmt> getSource() const override;
 
         [[nodiscard]] std::shared_ptr<ir::Stmt> getTarget() const override;
+
+        // the method below should not be called from user
 
         /**
          * Construct a default CFG edge
@@ -142,6 +148,10 @@ namespace analyzer::analysis::graph {
         Kind kind; ///< the edge kind
     };
 
+    /**
+     * @class DefaultCFG
+     * @brief a default implementation of cfg
+     */
     class DefaultCFG final: public CFG {
     public:
 
@@ -167,6 +177,8 @@ namespace analyzer::analysis::graph {
         [[nodiscard]] std::shared_ptr<ir::IR> getIR() const override;
 
         [[nodiscard]] std::size_t getEdgeNum() const override;
+
+        // the method below should not be called from user
 
         /**
          * @brief set the ir that generates this cfg

@@ -103,6 +103,8 @@ namespace analyzer::ir {
     class DefaultVarBuilder: public VarBuilder {
     public:
 
+        // the method below should not be called from user
+
         std::shared_ptr<Var> buildVar(const lang::CPPMethod& method, const clang::VarDecl* varDecl) override;
 
     };

@@ -16,23 +16,51 @@ namespace analyzer::ir {
     namespace lang = language;
     namespace graph = analysis::graph;
 
+    /**
+     * @class IR
+     * @brief interface for intermediate representation
+     */
     class IR {
     public:
 
+        /**
+         * @return the cpp method this ir is representing
+         */
         [[nodiscard]] virtual const lang::CPPMethod& getMethod() const = 0;
 
+        /**
+         * @return the cfg corresponding to this ir
+         */
         [[nodiscard]] virtual std::shared_ptr<graph::CFG> getCFG() const = 0;
 
+        /**
+         * @return the variables corresponding to parameters
+         */
         [[nodiscard]] virtual std::vector<std::shared_ptr<Var>> getParams() const = 0;
 
+        /**
+         * @return the variables in this ir
+         */
         [[nodiscard]] virtual std::vector<std::shared_ptr<Var>> getVars() const = 0;
 
+        /**
+         * @brief get a variable by its unique identity
+         * @param id each variable is bound to a unique identity number
+         * @return a variable if exists, otherwise nullptr
+         */
         [[nodiscard]] virtual std::shared_ptr<Var> getVarByIdentity(std::uint64_t id) const = 0;
 
+        /**
+         * @return the statements in this ir
+         */
         [[nodiscard]] virtual std::vector<std::shared_ptr<Stmt>> getStmts() const = 0;
 
     };
 
+    /**
+     * @class DefaultIR
+     * @brief the default implementation of ir
+     */
     class DefaultIR final: public IR {
     public:
 
@@ -40,14 +68,24 @@ namespace analyzer::ir {
 
         [[nodiscard]] std::shared_ptr<graph::CFG> getCFG() const override;
 
-        [[nodiscard]] virtual std::vector<std::shared_ptr<Var>> getParams() const override;
+        [[nodiscard]] std::vector<std::shared_ptr<Var>> getParams() const override;
 
-        [[nodiscard]] virtual std::vector<std::shared_ptr<Var>> getVars() const override;
+        [[nodiscard]] std::vector<std::shared_ptr<Var>> getVars() const override;
 
-        [[nodiscard]] virtual std::shared_ptr<Var> getVarByIdentity(std::uint64_t id) const override;
+        [[nodiscard]] std::shared_ptr<Var> getVarByIdentity(std::uint64_t id) const override;
 
-        [[nodiscard]] virtual std::vector<std::shared_ptr<Stmt>> getStmts() const override;
+        [[nodiscard]] std::vector<std::shared_ptr<Stmt>> getStmts() const override;
 
+        // functions below should not be called from user
+
+        /**
+         * @brief Construct a default ir of this
+         * @param method the method this ir is representing
+         * @param params the parameter variables in this ir
+         * @param vars the variables concerned in this ir
+         * @param stmts the statements of this ir
+         * @param cfg the cfg derived from this ir
+         */
         DefaultIR(const lang::CPPMethod& method,
                   const std::vector<std::shared_ptr<Var>>& params,
                   const std::unordered_map<std::uint64_t, std::shared_ptr<Var>>& vars,
@@ -58,13 +96,13 @@ namespace analyzer::ir {
 
         const lang::CPPMethod& method; ///< the method this ir is representing
 
-        const std::vector<std::shared_ptr<Var>> params;
+        const std::vector<std::shared_ptr<Var>> params; ///< the parameter variables in this ir
 
-        const std::unordered_map<std::uint64_t, std::shared_ptr<Var>> vars;
+        const std::unordered_map<std::uint64_t, std::shared_ptr<Var>> vars; ///< the variables concerned in this ir
 
-        const std::vector<std::shared_ptr<Stmt>> stmts;
+        const std::vector<std::shared_ptr<Stmt>> stmts; ///< the statements of this ir
 
-        std::shared_ptr<graph::CFG> cfg;
+        std::shared_ptr<graph::CFG> cfg; ///< the cfg derived from this ir
 
     };
 
@@ -91,33 +129,58 @@ namespace analyzer::ir {
     class DefaultIRBuilder: public IRBuilder {
     public:
 
+        // the method below should not be called from user
+
         [[nodiscard]] std::shared_ptr<IR> buildIR(const lang::CPPMethod& method) const override;
 
     };
 
+    /**
+     * @class DefaultIRBuilderHelper
+     * @brief a helper class for default ir builder
+     */
     class DefaultIRBuilderHelper {
     public:
 
+        // the method below should not be called from user
+
+        /**
+         * @brief construct a helper to build the default ir of method
+         * @param method a cpp method
+         */
         explicit DefaultIRBuilderHelper(const lang::CPPMethod& method);
 
+        /**
+         * @return a default ir built from method
+         */
         std::shared_ptr<IR> build();
 
     private:
 
-        const lang::CPPMethod& method;
+        const lang::CPPMethod& method; ///< the method to build ir
 
-        std::vector<std::shared_ptr<Var>> params;
+        std::vector<std::shared_ptr<Var>> params; ///< the parameter variables
 
-        std::unordered_map<std::uint64_t, std::shared_ptr<Var>> vars;
+        std::unordered_map<std::uint64_t, std::shared_ptr<Var>> vars; ///< all variables concerned
 
-        std::unordered_map<const clang::Stmt*, std::shared_ptr<Stmt>> stmts;
+        std::unordered_map<const clang::Stmt*, std::shared_ptr<Stmt>> stmts; ///< all non-empty statements in this ir
 
-        std::vector<std::shared_ptr<Stmt>> stmtVec;
+        std::vector<std::shared_ptr<Stmt>> stmtVec; ///< all statements in this ir
 
+        /**
+         * @brief build parameter variables
+         */
         void buildParams();
 
+        /**
+         * @brief build statements
+         */
         void buildStmts();
 
+        /**
+         * @brief build cfg edges
+         * @param cfg the default cfg to manipulate
+         */
         void buildEdges(std::shared_ptr<graph::DefaultCFG>& cfg);
 
     };

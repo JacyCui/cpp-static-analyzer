@@ -22,10 +22,12 @@ namespace analyzer {
      * @brief Interface for the world builder
      */
     class WorldBuilder {
+
         /**
          * @brief build the world
          */
         virtual void build() = 0;
+
     };
 
     /**
