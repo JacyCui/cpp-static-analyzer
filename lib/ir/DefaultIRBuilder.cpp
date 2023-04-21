@@ -92,7 +92,7 @@ namespace analyzer::ir {
             std::shared_ptr<Stmt> source = nullptr;
             std::shared_ptr<Stmt> target = nullptr;
 
-            // build normal edges for this block
+            // build fall through edges for this block
             for (const clang::CFGElement& element: *block) {
                 if (std::optional<clang::CFGStmt> cfgStmt = element.getAs<clang::CFGStmt>()) {
                     target = stmts.at(cfgStmt->getStmt());

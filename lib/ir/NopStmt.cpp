@@ -43,4 +43,9 @@ namespace analyzer::ir {
         return -1;
     }
 
+    std::string NopStmt::str() const
+    {
+        return "nop";
+    }
+
 }

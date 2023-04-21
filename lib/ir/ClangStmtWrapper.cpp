@@ -86,26 +86,39 @@ namespace analyzer::ir {
 
         const clang::SourceManager& sourceManager = method.getASTUnit()->getSourceManager();
 
+        startLine = static_cast<int>(sourceManager.getPresumedLineNumber(
+                sourceManager.getExpansionLoc(clangStmt->getBeginLoc())));
+        endLine = static_cast<int>(sourceManager.getPresumedLineNumber(
+                sourceManager.getExpansionLoc(clangStmt->getEndLoc())));
+        startColumn = static_cast<int>(sourceManager.getPresumedColumnNumber(
+                sourceManager.getExpansionLoc(clangStmt->getBeginLoc())));
+        endColumn = static_cast<int>(sourceManager.getPresumedColumnNumber(
+                sourceManager.getExpansionLoc(clangStmt->getEndLoc())));
+
+        clang::SourceRange&& range = clangStmt->getSourceRange();
+        clang::CharSourceRange&& expansionRange = sourceManager.getExpansionRange(range);
+        const clang::LangOptions& langOptions = method.getASTUnit()->getASTContext().getLangOpts();
+        source = clang::Lexer::getSourceText(expansionRange,sourceManager, langOptions).str();
     }
 
     int ClangStmtWrapper::getStartLine() const
     {
-        return -1;
+        return startLine;
     }
 
     int ClangStmtWrapper::getEndLine() const
     {
-        return -1;
+        return endLine;
     }
 
     int ClangStmtWrapper::getStartColumn() const
     {
-        return -1;
+        return startColumn;
     }
 
     int ClangStmtWrapper::getEndColumn() const
     {
-        return -1;
+        return endColumn;
     }
 
     const lang::CPPMethod& ClangStmtWrapper::getMethod() const
@@ -121,6 +134,10 @@ namespace analyzer::ir {
     std::unordered_set<std::shared_ptr<Var>> ClangStmtWrapper::getUses() const
     {
         return uses;
+    }
+
+    std::string ClangStmtWrapper::str() const {
+        return source;
     }
 
 }

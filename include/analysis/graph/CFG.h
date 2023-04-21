@@ -64,13 +64,6 @@ namespace analyzer::analysis::graph {
         [[nodiscard]] virtual std::shared_ptr<ir::Stmt> getExit() const = 0;
 
         /**
-         * @brief check the existence of a statement (check by identity, rather than equality)
-         * @param stmt the statement to be checked
-         * @return true if exists, otherwise false
-         */
-        [[nodiscard]] virtual bool hasStmt(std::shared_ptr<ir::Stmt> stmt) const = 0;
-
-        /**
          * @brief check the existence of a CFG edge
          * @param source the source statement
          * @param target the target statement
@@ -115,6 +108,11 @@ namespace analyzer::analysis::graph {
          * @return the intermediate representation corresponding to this CFG
          */
         [[nodiscard]] virtual std::shared_ptr<ir::IR> getIR() const = 0;
+
+        /**
+         * @return the number of edges of this cfg
+         */
+        [[nodiscard]] virtual std::size_t getEdgeNum() const = 0;
     };
 
     class DefaultCFGEdge: public CFGEdge {
@@ -151,8 +149,6 @@ namespace analyzer::analysis::graph {
 
         [[nodiscard]] std::shared_ptr<ir::Stmt> getExit() const override;
 
-        [[nodiscard]] bool hasStmt(std::shared_ptr<ir::Stmt> stmt) const override;
-
         [[nodiscard]] bool
         hasEdge(std::shared_ptr<ir::Stmt> source, std::shared_ptr<ir::Stmt> target) const override;
 
@@ -170,6 +166,8 @@ namespace analyzer::analysis::graph {
 
         [[nodiscard]] std::shared_ptr<ir::IR> getIR() const override;
 
+        [[nodiscard]] std::size_t getEdgeNum() const override;
+
         void setIR(const std::shared_ptr<ir::IR>& myIR);
 
         void addEdge(const std::shared_ptr<CFGEdge>& edge);
@@ -178,21 +176,23 @@ namespace analyzer::analysis::graph {
 
         void setExit(const std::shared_ptr<ir::Stmt>& exit);
 
-        explicit DefaultCFG();
+        DefaultCFG();
 
     private:
 
-        /// in edges of each statement
-        std::unordered_map<std::shared_ptr<ir::Stmt>, std::unordered_set<std::shared_ptr<CFGEdge>>> inEdges;
+        std::unordered_multimap<std::shared_ptr<ir::Stmt>, std::shared_ptr<CFGEdge>>
+            inEdges; ///< in edges of each statement
 
-        /// out edges of each statement
-        std::unordered_map<std::shared_ptr<ir::Stmt>, std::unordered_set<std::shared_ptr<CFGEdge>>> outEdges;
+        std::unordered_multimap<std::shared_ptr<ir::Stmt>, std::shared_ptr<CFGEdge>>
+            outEdges; ///< out edges of each statement
 
         std::weak_ptr<ir::IR> myIR; ///< ir of this cfg
 
-        std::shared_ptr<ir::Stmt> entry;
+        std::shared_ptr<ir::Stmt> entry; ///< entry node of this cfg
 
-        std::shared_ptr<ir::Stmt> exit;
+        std::shared_ptr<ir::Stmt> exit; ///< exit node of this cfg
+
+        std::size_t edgeNum; ///< number of edges in this cfg
 
     };
 

@@ -15,11 +15,6 @@ namespace analyzer::analysis::graph {
         return kind;
     }
 
-    DefaultCFG::DefaultCFG()
-    {
-
-    }
-
     std::shared_ptr<ir::Stmt> DefaultCFGEdge::getSource() const
     {
         return source;
@@ -28,6 +23,12 @@ namespace analyzer::analysis::graph {
     std::shared_ptr<ir::Stmt> DefaultCFGEdge::getTarget() const
     {
         return target;
+    }
+
+    DefaultCFG::DefaultCFG()
+        :edgeNum(0)
+    {
+
     }
 
     std::shared_ptr<ir::Stmt> DefaultCFG::getEntry() const
@@ -40,20 +41,10 @@ namespace analyzer::analysis::graph {
         return exit;
     }
 
-    bool DefaultCFG::hasStmt(std::shared_ptr<ir::Stmt> stmt) const
-    {
-        return inEdges.find(stmt) != inEdges.end() || outEdges.find(stmt) != outEdges.end();
-    }
-
     bool DefaultCFG::hasEdge(std::shared_ptr<ir::Stmt> source, std::shared_ptr<ir::Stmt> target) const
     {
-        if (!hasStmt(source)) {
-            return false;
-        }
-        return std::any_of(outEdges.at(source).begin(), outEdges.at(source).end(),
-                           [&](const std::shared_ptr<CFGEdge>& outEdge){
-            return outEdge->getTarget() == target;
-        });
+        std::unordered_set<std::shared_ptr<ir::Stmt>>&& succs = getSuccsOf(source);
+        return succs.find(target) != succs.end();
     }
 
     std::unordered_set<std::shared_ptr<ir::Stmt>> DefaultCFG::getPredsOf(std::shared_ptr<ir::Stmt> stmt) const
@@ -68,7 +59,7 @@ namespace analyzer::analysis::graph {
     std::unordered_set<std::shared_ptr<ir::Stmt>> DefaultCFG::getSuccsOf(std::shared_ptr<ir::Stmt> stmt) const
     {
         std::unordered_set<std::shared_ptr<ir::Stmt>> result;
-        for (const std::shared_ptr<CFGEdge>& outEdge : getInEdgesOf(stmt)) {
+        for (const std::shared_ptr<CFGEdge>& outEdge : getOutEdgesOf(stmt)) {
             result.emplace(outEdge->getTarget());
         }
         return result;
@@ -76,30 +67,36 @@ namespace analyzer::analysis::graph {
 
     std::unordered_set<std::shared_ptr<CFGEdge>> DefaultCFG::getInEdgesOf(std::shared_ptr<ir::Stmt> stmt) const
     {
-        if (inEdges.find(stmt) == inEdges.end()) {
-            return {};
+        std::unordered_set<std::shared_ptr<CFGEdge>> result;
+        result.reserve(inEdges.count(stmt));
+        auto range = inEdges.equal_range(stmt);
+        for (auto&& it = range.first; it != range.second; it++) {
+            result.emplace(it->second);
         }
-        return inEdges.at(stmt);
+        return result;
     }
 
     std::unordered_set<std::shared_ptr<CFGEdge>> DefaultCFG::getOutEdgesOf(std::shared_ptr<ir::Stmt> stmt) const
     {
-        if (outEdges.find(stmt) == outEdges.end()) {
-            return {};
+        std::unordered_set<std::shared_ptr<CFGEdge>> result;
+        result.reserve(outEdges.count(stmt));
+        auto range = outEdges.equal_range(stmt);
+        for (auto&& it = range.first; it != range.second; it++) {
+            result.emplace(it->second);
         }
-        return outEdges.at(stmt);
+        return result;
     }
 
     void DefaultCFG::addEdge(const std::shared_ptr<CFGEdge>& edge)
     {
-        if (inEdges.find(edge->getTarget()) == inEdges.end()
-            || outEdges.find(edge->getSource()) == outEdges.end()) {
-            inEdges.emplace(edge->getTarget(), std::unordered_set<std::shared_ptr<CFGEdge>>{edge});
-            outEdges.emplace(edge->getSource(), std::unordered_set<std::shared_ptr<CFGEdge>>{edge});
-            return;
-        }
-        inEdges.at(edge->getTarget()).emplace(edge);
-        outEdges.at(edge->getSource()).emplace(edge);
+        inEdges.emplace(edge->getTarget(), edge);
+        outEdges.emplace(edge->getSource(), edge);
+        edgeNum++;
+    }
+
+    std::size_t DefaultCFG::getEdgeNum() const
+    {
+        return edgeNum;
     }
 
     void DefaultCFG::setEntry(const std::shared_ptr<ir::Stmt>& entry)
@@ -121,8 +118,6 @@ namespace analyzer::analysis::graph {
     {
         this->myIR = myIR;
     }
-
-
 
 }
 

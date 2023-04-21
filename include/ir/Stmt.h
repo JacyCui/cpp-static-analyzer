@@ -33,7 +33,7 @@ namespace analyzer::ir {
         [[nodiscard]] virtual int getStartColumn() const = 0;
 
         /**
-         * @return the end column number of the statement (excluded)
+         * @return the end column number of the statement (included)
          */
         [[nodiscard]] virtual int getEndColumn() const = 0;
 
@@ -51,6 +51,11 @@ namespace analyzer::ir {
          * @return the variables used in this Stmt
          */
         [[nodiscard]] virtual std::unordered_set<std::shared_ptr<Var>> getUses() const = 0;
+
+        /**
+         * @return the string representation of this statement
+         */
+        [[nodiscard]] virtual std::string str() const = 0;
 
     };
 
@@ -70,6 +75,8 @@ namespace analyzer::ir {
         [[nodiscard]] std::unordered_set<std::shared_ptr<Var>> getDefs() const override;
 
         [[nodiscard]] std::unordered_set<std::shared_ptr<Var>> getUses() const override;
+
+        [[nodiscard]] std::string str() const override;
 
         explicit NopStmt(const lang::CPPMethod& method);
 
@@ -119,6 +126,8 @@ namespace analyzer::ir {
 
         [[nodiscard]] std::unordered_set<std::shared_ptr<Var>> getUses() const override;
 
+        [[nodiscard]] std::string str() const override;
+
         ClangStmtWrapper(const lang::CPPMethod& method, const clang::Stmt* clangStmt);
 
     private:
@@ -130,6 +139,16 @@ namespace analyzer::ir {
         std::unordered_set<std::shared_ptr<Var>> uses;
 
         std::unordered_set<std::shared_ptr<Var>> defs;
+
+        int startLine;
+
+        int startColumn;
+
+        int endLine;
+
+        int endColumn;
+
+        std::string source;
 
     };
 

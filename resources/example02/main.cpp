@@ -10,7 +10,7 @@ int test1(int a, int b) {
 }
 
 int main(int argc, char* argv[]) {
-    int a;
+    int a = 3;
     int b;
     int c;
     a = 1;
@@ -19,6 +19,18 @@ int main(int argc, char* argv[]) {
     } else {
         b = 3;
     }
-    c = b;
-    return 0;
+    c = b + a;
+    int e = 1, d;
+    return c;
+}
+
+int fib(int i) {
+    int a = 0, b = 1;
+    while (i > 0) {
+        int tmp = b;
+        b = a + b;
+        a = tmp;
+        i--;
+    }
+    return a;
 }
