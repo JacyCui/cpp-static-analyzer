@@ -53,8 +53,6 @@ namespace analyzer {
         logger = newLogger;
     }
 
-    //------
-
     World::World(std::unordered_map<std::string, std::string>&& sourceCode, std::vector<std::string>&& args)
         :sourceCode(std::move(sourceCode)), args(std::move(args))
     {
@@ -219,8 +217,6 @@ namespace analyzer {
     {
         return stmtBuilder;
     }
-
-    // ----------
 
     std::unordered_map<std::string, std::string> loadSourceCodes(const std::string& sourceDir)
     {

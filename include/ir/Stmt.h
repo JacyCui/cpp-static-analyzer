@@ -57,6 +57,11 @@ namespace analyzer::ir {
          */
         [[nodiscard]] virtual std::string str() const = 0;
 
+        /**
+         * @return the clang AST node of this statement, nullptr if this statement is nop
+         */
+        [[nodiscard]] virtual const clang::Stmt* getClangStmt() const = 0;
+
     };
 
     class NopStmt: public Stmt {
@@ -77,6 +82,8 @@ namespace analyzer::ir {
         [[nodiscard]] std::unordered_set<std::shared_ptr<Var>> getUses() const override;
 
         [[nodiscard]] std::string str() const override;
+
+        [[nodiscard]] virtual const clang::Stmt* getClangStmt() const override;
 
         explicit NopStmt(const lang::CPPMethod& method);
 
@@ -135,6 +142,8 @@ namespace analyzer::ir {
         [[nodiscard]] std::unordered_set<std::shared_ptr<Var>> getUses() const override;
 
         [[nodiscard]] std::string str() const override;
+
+        [[nodiscard]] const clang::Stmt* getClangStmt() const override;
 
         ClangStmtWrapper(const lang::CPPMethod& method, const clang::Stmt* clangStmt);
 

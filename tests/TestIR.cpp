@@ -9,7 +9,7 @@ namespace graph = al::analysis::graph;
 
 class IRTestFixture {
 protected:
-    std::shared_ptr<air::IR> ir1, ir2, ir3;
+    std::shared_ptr<air::IR> ir1, ir2, ir3, ir4;
 public:
     IRTestFixture() {
         al::World::initialize("resources/example02");
@@ -17,6 +17,7 @@ public:
         ir1 = world.getMethodBySignature("int main(int, char **)")->getIR();
         ir2 = world.getMethodBySignature("int test1(int, int)")->getIR();
         ir3 = world.getMethodBySignature("int fib(int)")->getIR();
+        ir4 = world.getMethodBySignature("int factor(int)")->getIR();
     }
 };
 
@@ -373,6 +374,40 @@ TEST_CASE_FIXTURE(IRTestFixture, "testGetCFG2" * doctest::description("testing g
     }
 
     al::World::getLogger().Success("Finish testing get another method cfg ...");
+}
+
+TEST_CASE_FIXTURE(IRTestFixture, "testGetCFG3" * doctest::description("testing get the last method cfg")) {
+
+    al::World::getLogger().Progress("Testing get the last method cfg ...");
+
+    std::unordered_map<std::string, std::shared_ptr<air::Stmt>> stmtMap;
+    for (const std::shared_ptr<air::Stmt>& s : ir4->getStmts()) {
+        stmtMap.emplace(s->str(), s);
+        al::World::getLogger().Debug(s->str());
+    }
+
+    std::shared_ptr<air::Stmt> s1 = stmtMap.at("int result = 1;");
+    std::shared_ptr<air::Stmt> s2 = stmtMap.at("int i = 1;");
+    std::shared_ptr<air::Stmt> s3 = stmtMap.at("i <= n");
+    std::shared_ptr<air::Stmt> s4 = stmtMap.at("result = result * i");
+    std::shared_ptr<air::Stmt> s5 = stmtMap.at("i++");
+    std::shared_ptr<air::Stmt> s6 = stmtMap.at("result");
+    std::shared_ptr<air::Stmt> s7 = stmtMap.at("return result");
+
+    std::shared_ptr<graph::CFG> cfg = ir4->getCFG();
+    CHECK_EQ(cfg->getEdgeNum(), 9);
+
+    CHECK(cfg->hasEdge(cfg->getEntry(), s1));
+    CHECK(cfg->hasEdge(s1, s2));
+    CHECK(cfg->hasEdge(s2, s3));
+    CHECK(cfg->hasEdge(s3, s4));
+    CHECK(cfg->hasEdge(s4, s5));
+    CHECK(cfg->hasEdge(s5, s3));
+    CHECK(cfg->hasEdge(s3, s6));
+    CHECK(cfg->hasEdge(s6, s7));
+    CHECK(cfg->hasEdge(s7, cfg->getExit()));
+
+    al::World::getLogger().Success("Finish testing get the last method cfg ...");
 }
 
 TEST_SUITE_END();

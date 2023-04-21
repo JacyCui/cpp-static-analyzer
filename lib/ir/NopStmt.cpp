@@ -48,4 +48,9 @@ namespace analyzer::ir {
         return "nop";
     }
 
+    const clang::Stmt* NopStmt::getClangStmt() const
+    {
+        return nullptr;
+    }
+
 }

@@ -136,8 +136,14 @@ namespace analyzer::ir {
         return uses;
     }
 
-    std::string ClangStmtWrapper::str() const {
+    std::string ClangStmtWrapper::str() const
+    {
         return source;
+    }
+
+    const clang::Stmt* ClangStmtWrapper::getClangStmt() const
+    {
+        return clangStmt;
     }
 
 }

@@ -21,10 +21,10 @@ namespace analyzer::analysis::graph {
          * @brief edge kind enumeration
          */
         enum class Kind {
-            ENTRY_EDGE,
-            EXIT_EDGE,
-            FALL_THROUGH_EDGE,
-            JUMP_EDGE,
+            ENTRY_EDGE, ///< edges from the entry node
+            EXIT_EDGE, ///< edges to the exit node
+            FALL_THROUGH_EDGE, ///< edges from sequential execution
+            JUMP_EDGE, ///< edges from if-else / switch-case / while / for
             UNKNOWN_EDGE ///< unknown kind of cfg edge
         };
 
@@ -168,14 +168,33 @@ namespace analyzer::analysis::graph {
 
         [[nodiscard]] std::size_t getEdgeNum() const override;
 
+        /**
+         * @brief set the ir that generates this cfg
+         * @param myIR intermediate representation
+         */
         void setIR(const std::shared_ptr<ir::IR>& myIR);
 
+        /**
+         * @brief add an edge to this cfg
+         * @param edge a default cfg edge
+         */
         void addEdge(const std::shared_ptr<CFGEdge>& edge);
 
+        /**
+         * @brief set the entry node of this cfg
+         * @param entry the entry node (typically a nop statement) of this cfg
+         */
         void setEntry(const std::shared_ptr<ir::Stmt>& entry);
 
+        /**
+         * @brief set the exit node of this cfg
+         * @param exit the exit node (typically a nop statement) of this cfg
+         */
         void setExit(const std::shared_ptr<ir::Stmt>& exit);
 
+        /**
+         * @brief construct an empty default cfg
+         */
         DefaultCFG();
 
     private:
