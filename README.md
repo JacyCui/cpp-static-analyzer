@@ -34,7 +34,8 @@ ninja --version
 ### On Ubuntu
 
 Using [apt](https://ubuntu.com/server/docs/package-management) as the package manager,
-adding llvm to software source, run
+adding llvm deb to software source according to 
+[here](https://apt.llvm.org/), run
 
 ```shell
 sudo apt install clang-format clang-tidy clang-tools clang clangd libc++-dev libc++1 libc++abi-dev libc++abi1 libclang-dev libclang1 liblldb-dev libllvm-ocaml-dev libomp-dev libomp5 lld lldb llvm-dev llvm-runtime llvm python3-clang
