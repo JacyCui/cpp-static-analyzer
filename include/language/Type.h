@@ -17,6 +17,8 @@ namespace analyzer::language {
          */
         [[nodiscard]] virtual const std::string& getName() const = 0;
 
+        virtual ~Type() = default;
+
     };
 
     /**
@@ -62,6 +64,8 @@ namespace analyzer::language {
          * @return a type used in this analyzer
          */
         [[nodiscard]] virtual std::shared_ptr<Type> buildType(const clang::QualType& qualType) = 0;
+
+        virtual ~TypeBuilder() = default;
 
     };
 

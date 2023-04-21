@@ -55,6 +55,8 @@ namespace analyzer::ir {
          */
         [[nodiscard]] virtual std::vector<std::shared_ptr<Stmt>> getStmts() const = 0;
 
+        virtual ~IR() = default;
+
     };
 
     /**
@@ -119,6 +121,8 @@ namespace analyzer::ir {
          * @return the intermediate representation of method
          */
         [[nodiscard]] virtual std::shared_ptr<IR> buildIR(const lang::CPPMethod& method) const = 0;
+
+        virtual ~IRBuilder() = default;
 
     };
 

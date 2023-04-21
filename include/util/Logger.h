@@ -2,6 +2,7 @@
 #define STATIC_ANALYZER_LOGGER_H
 
 #include <string_view>
+#include <unordered_map>
 
 #include <llvm/Support/raw_ostream.h>
 
@@ -12,8 +13,8 @@ namespace analyzer::util {
      * @brief Used to output different kinds of log information
      */
     class Logger final {
-
     public:
+
         /**
          * @brief Construct a logger using given stream
          * @param os output stream to carry log information

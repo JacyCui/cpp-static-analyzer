@@ -383,7 +383,6 @@ TEST_CASE_FIXTURE(IRTestFixture, "testGetCFG3" * doctest::description("testing g
     std::unordered_map<std::string, std::shared_ptr<air::Stmt>> stmtMap;
     for (const std::shared_ptr<air::Stmt>& s : ir4->getStmts()) {
         stmtMap.emplace(s->str(), s);
-        al::World::getLogger().Debug(s->str());
     }
 
     std::shared_ptr<air::Stmt> s1 = stmtMap.at("int result = 1;");

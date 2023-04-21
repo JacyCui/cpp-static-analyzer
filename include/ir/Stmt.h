@@ -62,6 +62,8 @@ namespace analyzer::ir {
          */
         [[nodiscard]] virtual const clang::Stmt* getClangStmt() const = 0;
 
+        virtual ~Stmt() = default;
+
     };
 
     /**
@@ -124,6 +126,8 @@ namespace analyzer::ir {
          */
         [[nodiscard]] virtual std::shared_ptr<Stmt>
                 buildEmptyStmt(const lang::CPPMethod &method) = 0;
+
+        virtual ~StmtBuilder() = default;
 
     };
 

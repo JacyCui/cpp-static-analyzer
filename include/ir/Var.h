@@ -40,6 +40,9 @@ namespace analyzer::ir {
          * @return the identity of this variable
          */
         [[nodiscard]] virtual std::uint64_t getIdentity() const = 0;
+
+        virtual ~Var() = default;
+
     };
 
     /**
@@ -57,6 +60,8 @@ namespace analyzer::ir {
          */
         [[nodiscard]] virtual std::shared_ptr<Var>
                 buildVar(const lang::CPPMethod& method, const clang::VarDecl* varDecl) = 0;
+
+        virtual ~VarBuilder() = default;
 
     };
 

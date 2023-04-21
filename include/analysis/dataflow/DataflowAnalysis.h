@@ -75,6 +75,8 @@ namespace analyzer::analysis::dataflow {
          * @return the control-flow graph that this analysis works on.
          */
         virtual std::shared_ptr<graph::CFG> getCFG() const = 0;
+
+        virtual ~DataFlowAnalysis() = default;
     };
 
 

@@ -30,9 +30,11 @@ public:
 
 TEST_SUITE_BEGIN("testWorld");
 
-TEST_CASE_FIXTURE(WorldTestFixture, "testGetSourceCode" * doctest::description("test world building"))
-{
-    al::World::getLogger().Debug("Testing world building ...");
+TEST_CASE_FIXTURE(WorldTestFixture, "testGetSourceCode"
+    * doctest::description("test world building")) {
+
+    al::World::getLogger().Progress("Testing world building ...");
+
     const std::unordered_map<std::string, std::string> &fileLists = world.getSourceCode();
 
     std::string p1("resources/example01/src/main.cpp");
@@ -56,11 +58,16 @@ TEST_CASE_FIXTURE(WorldTestFixture, "testGetSourceCode" * doctest::description("
     CHECK(f3.is_open());
     CHECK_EQ(fileLists.at(p3), std::string(std::istreambuf_iterator<char>(f3),
                                            std::istreambuf_iterator<char>()));
+
+    al::World::getLogger().Success("Finish testing world building ...");
+
 }
 
-TEST_CASE_FIXTURE(WorldTestFixture, "testInitialization" * doctest::description("testing world initialization"))
-{
-    al::World::getLogger().Debug("Testing world initialization ...");
+TEST_CASE_FIXTURE(WorldTestFixture, "testInitialization"
+    * doctest::description("testing world initialization")) {
+
+    al::World::getLogger().Progress("Testing world initialization ...");
+
     std::vector<std::string> fileList;
     for (const std::unique_ptr<clang::ASTUnit> &ast: world.getAstList()) {
         fileList.emplace_back(ast->getMainFileName().str());
@@ -71,11 +78,16 @@ TEST_CASE_FIXTURE(WorldTestFixture, "testInitialization" * doctest::description(
             "resources/example01/src/fib/fib.cpp",
             "resources/example01/src/main.cpp"
     });
+
+    al::World::getLogger().Success("Testing world initialization ...");
+
 }
 
-TEST_CASE_FIXTURE(WorldTestFixture, "testDumpAST" * doctest::description("testing pretty ast dumper"))
-{
-    al::World::getLogger().Debug("Testing pretty ast dumper ...");
+TEST_CASE_FIXTURE(WorldTestFixture, "testDumpAST"
+    * doctest::description("testing pretty ast dumper")) {
+
+    al::World::getLogger().Progress("Testing pretty ast dumper ...");
+
     std::string str;
     llvm::raw_string_ostream output(str);
     world.dumpAST(output);
@@ -85,11 +97,16 @@ TEST_CASE_FIXTURE(WorldTestFixture, "testDumpAST" * doctest::description("testin
     uint64_t t2 = analyzer::World::getLogger().getOutStream()->tell();
     CHECK_NE(t1, t2);
     //al::World::getLogger().Debug(str);
+
+    al::World::getLogger().Success("Finish testing pretty ast dumper ...");
+
 }
 
-TEST_CASE_FIXTURE(WorldTestFixture, "testGetAllMethods" * doctest::description("testing function list building"))
-{
-    al::World::getLogger().Debug("Testing function list building ...");
+TEST_CASE_FIXTURE(WorldTestFixture, "testGetAllMethods"
+    * doctest::description("testing function list building")) {
+
+    al::World::getLogger().Progress("Testing function list building ...");
+
     std::vector<std::string> signatureList;
     for (const auto& [sig, method]: world.getAllMethods()) {
         CHECK_EQ(sig, method->getMethodSignatureAsString());
@@ -105,6 +122,9 @@ TEST_CASE_FIXTURE(WorldTestFixture, "testGetAllMethods" * doctest::description("
         "void example01::Factor::Factor(int)",
         "void example01::Fib::Fib(int)"
     });
+
+    al::World::getLogger().Success("Finish testing function list building ...");
+
 }
 
 TEST_SUITE_END();

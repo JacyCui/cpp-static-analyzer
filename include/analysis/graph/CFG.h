@@ -44,6 +44,7 @@ namespace analyzer::analysis::graph {
          */
         [[nodiscard]] virtual std::shared_ptr<ir::Stmt> getTarget() const = 0;
 
+        virtual ~CFGEdge() = default;
     };
 
     /**
@@ -113,6 +114,8 @@ namespace analyzer::analysis::graph {
          * @return the number of edges of this cfg
          */
         [[nodiscard]] virtual std::size_t getEdgeNum() const = 0;
+
+        virtual ~CFG() = default;
     };
 
     /**
