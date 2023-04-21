@@ -33,8 +33,6 @@ namespace analyzer::ir {
         std::shared_ptr<graph::DefaultCFG> cfg = std::make_shared<graph::DefaultCFG>();
         buildEdges(cfg);
         World::getLogger().Info("Encapsulating the above parts to form ir ...");
-        std::vector<std::shared_ptr<Stmt>> stmtVec;
-        stmtVec.reserve(stmts.size());
         for (const auto& [_, s]: stmts) {
             stmtVec.emplace_back(s);
         }
@@ -82,12 +80,17 @@ namespace analyzer::ir {
     void DefaultIRBuilderHelper::buildEdges(std::shared_ptr<graph::DefaultCFG>& cfg)
     {
 
-        std::shared_ptr<Stmt> entry = std::make_shared<NopStmt>(method);
+        std::shared_ptr<Stmt> entry = World::get().getStmtBuilder()->buildEmptyStmt(method);
         cfg->setEntry(entry);
-        std::shared_ptr<Stmt> exit = std::make_shared<NopStmt>(method);
+        std::shared_ptr<Stmt> exit = World::get().getStmtBuilder()->buildEmptyStmt(method);
         cfg->setExit(exit);
 
+        std::unordered_map<const clang::CFGBlock*, std::shared_ptr<Stmt>> emptyBlocks;
+
         for (const clang::CFGBlock* block: method.getClangCFG()->const_nodes()) {
+            if (block == &method.getClangCFG()->getExit()) {
+                continue;
+            }
 
             std::shared_ptr<Stmt> source = nullptr;
             std::shared_ptr<Stmt> target = nullptr;
@@ -111,6 +114,13 @@ namespace analyzer::ir {
                 source = entry;
             } else {
                 kind = graph::CFGEdge::Kind::JUMP_EDGE;
+                if (!target) {
+                    if (emptyBlocks.find(block) == emptyBlocks.end()) {
+                        emptyBlocks.emplace(block, World::get().getStmtBuilder()->buildEmptyStmt(method));
+                        stmtVec.emplace_back(emptyBlocks.at(block));
+                    }
+                    target = emptyBlocks.at(block);
+                }
                 source = target;
             }
 
@@ -119,18 +129,28 @@ namespace analyzer::ir {
                     cfg->addEdge(std::make_shared<graph::DefaultCFGEdge>
                             (source, exit, graph::CFGEdge::Kind::EXIT_EDGE));
                 } else {
+                    bool isEmpty = true;
                     for (const clang::CFGElement& element: *succ) {
                         if (std::optional<clang::CFGStmt> cfgStmt = element.getAs<clang::CFGStmt>()) {
                             target = stmts.at(cfgStmt->getStmt());
                             cfg->addEdge(std::make_shared<graph::DefaultCFGEdge>
                                                  (source, target, kind));
+                            isEmpty = false;
                             break;
                         }
+                    }
+                    if (isEmpty) {
+                        if (emptyBlocks.find(succ) == emptyBlocks.end()) {
+                            emptyBlocks.emplace(succ, World::get().getStmtBuilder()->buildEmptyStmt(method));
+                            stmtVec.emplace_back(emptyBlocks.at(succ));
+                        }
+                        target = emptyBlocks.at(succ);
+                        cfg->addEdge(std::make_shared<graph::DefaultCFGEdge>
+                                             (source, target, kind));
                     }
                 }
             }
         }
-
     }
 
 }

@@ -103,6 +103,14 @@ namespace analyzer::ir {
         [[nodiscard]] virtual std::shared_ptr<Stmt>
                 buildStmt(const lang::CPPMethod &method, const clang::Stmt* clangStmt) = 0;
 
+        /**
+         * @brief build an empty statement in a given method
+         * @param method a cpp method that defines the statement
+         * @return an empty statement
+         */
+        [[nodiscard]] virtual std::shared_ptr<Stmt>
+                buildEmptyStmt(const lang::CPPMethod &method) = 0;
+
     };
 
     /**
@@ -160,6 +168,9 @@ namespace analyzer::ir {
 
         [[nodiscard]] std::shared_ptr<Stmt>
             buildStmt(const lang::CPPMethod& method, const clang::Stmt* clangStmt) override;
+
+        [[nodiscard]] std::shared_ptr<Stmt>
+            buildEmptyStmt(const lang::CPPMethod &method) override;
 
     };
 

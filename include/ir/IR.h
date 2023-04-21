@@ -112,6 +112,8 @@ namespace analyzer::ir {
 
         std::unordered_map<const clang::Stmt*, std::shared_ptr<Stmt>> stmts;
 
+        std::vector<std::shared_ptr<Stmt>> stmtVec;
+
         void buildParams();
 
         void buildStmts();

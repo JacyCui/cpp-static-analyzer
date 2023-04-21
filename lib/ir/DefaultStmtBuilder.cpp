@@ -7,4 +7,9 @@ namespace analyzer::ir {
         return std::make_shared<ClangStmtWrapper>(method, clangStmt);
     }
 
+    std::shared_ptr<Stmt> DefaultStmtBuilder::buildEmptyStmt(const lang::CPPMethod &method)
+    {
+        return std::make_shared<NopStmt>(method);
+    }
+
 };
