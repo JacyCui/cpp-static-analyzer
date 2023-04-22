@@ -4,50 +4,52 @@
 
 This app static analyzer uses clang as its front end. 
 So you need to install llvm and clang on your system. 
-This is developed and tested under [llvm](https://llvm.org/) 
-16.0.2 (which is also the latest version until 2023.4.21), 
-but recent versions should be ok.
+This is developed under [llvm](https://llvm.org/) 
+16.0.2, tested under llvm 16.0.2 and 17.0.0, 
+but more recent versions should also be ok.
 
-It is recommended to install llvm using a package manager
+It is recommended to install llvm using precompiled binaries
 instead of building from source manually. 
 
-Here is the way to install the latest version of llvm, clang 
-and ninja.
+Here is the way to config the proper environment of this
+project.
 
 ### On MacOS
 
 Use [homebrew](https://brew.sh/) as the package manager, run 
 
 ```shell
-brew install llvm
-brew install ninja
+brew install cmake ninja llvm
 ```
 
-Then, check your installed version of llvm, clang and ninja by
+Then, check your installed version of cmake, ninja, llvm, and clang by
 
 ```shell
+cmake --version
+ninja --version
 llvm-config --version
 clang --version
-ninja --version
 ```
 
-### On Ubuntu
+### On Ubuntu 22.04
 
-Using [apt](https://ubuntu.com/server/docs/package-management) as the package manager,
-adding llvm deb to software source according to 
-[here](https://apt.llvm.org/), run
+Using [llvm apt source]((https://apt.llvm.org/)), run
 
 ```shell
-sudo apt install clang-format clang-tidy clang-tools clang clangd libc++-dev libc++1 libc++abi-dev libc++abi1 libclang-dev libclang1 liblldb-dev libllvm-ocaml-dev libomp-dev libomp5 lld lldb llvm-dev llvm-runtime llvm python3-clang
-sudo apt install ninja-build
+sudo apt update 
+sudo apt install lsb-release wget software-properties-common gnupg zlib1g zlib1g-dev git cmake ninja-build build-essential
+wget https://apt.llvm.org/llvm.sh
+chmod +x llvm.sh
+./llvm.sh 17 all
 ```
 
-Then, check your installed version of llvm, clang and ninja by
+Then, check your installed version of cmake, ninja, llvm, and clang by
 
 ```shell
-llvm-config --version
-clang --version
+cmake --version
 ninja --version
+clang-17 --version
+llvm-config-17 --version
 ```
 
 ## Compile Project and Run Tests to Check Setup
@@ -77,6 +79,4 @@ assertions are passed.
 [doctest] assertions: 255 | 255 passed | 0 failed |
 [doctest] Status: SUCCESS!
 ```
-
-
 
