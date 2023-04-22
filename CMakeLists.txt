@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.14)
 
 project(static-analyzer)
 set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti") # add for those build llvm without rtti
 
 find_package(LLVM REQUIRED CONFIG)
 message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
@@ -17,7 +18,7 @@ link_directories(${LLVM_LIBRARY_DIRS})
 separate_arguments(LLVM_DEFINITIONS_LIST NATIVE_COMMAND ${LLVM_DEFINITIONS})
 add_definitions(${LLVM_DEFINITIONS_LIST})
 
-llvm_map_components_to_libnames(LLVM_LIBS support)
+llvm_map_components_to_libnames(LLVM_LIBS support frontendopenmp)
 
 set(CLANG_LIBS
         clangTooling
