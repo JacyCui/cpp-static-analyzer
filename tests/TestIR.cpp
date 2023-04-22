@@ -23,7 +23,8 @@ public:
 
 TEST_SUITE_BEGIN("testIR");
 
-TEST_CASE_FIXTURE(IRTestFixture, "testGetParams" * doctest::description("testing get method ir parameters")) {
+TEST_CASE_FIXTURE(IRTestFixture, "testGetParams"
+    * doctest::description("testing get method ir parameters")) {
 
     al::World::getLogger().Progress("Testing get method ir parameters ...");
 
@@ -45,7 +46,8 @@ TEST_CASE_FIXTURE(IRTestFixture, "testGetParams" * doctest::description("testing
 
 }
 
-TEST_CASE_FIXTURE(IRTestFixture, "testGetVars" * doctest::description("testing get method variables")) {
+TEST_CASE_FIXTURE(IRTestFixture, "testGetVars"
+    * doctest::description("testing get method variables")) {
 
     al::World::getLogger().Progress("Testing get method variables ...");
 
@@ -72,7 +74,8 @@ TEST_CASE_FIXTURE(IRTestFixture, "testGetVars" * doctest::description("testing g
 
 }
 
-TEST_CASE_FIXTURE(IRTestFixture, "testGetStmts" * doctest::description("testing get method statements")) {
+TEST_CASE_FIXTURE(IRTestFixture, "testGetStmts"
+    * doctest::description("testing get method statements")) {
 
     al::World::getLogger().Progress("Testing get method statements ...");
 
@@ -207,7 +210,8 @@ TEST_CASE_FIXTURE(IRTestFixture, "testGetStmts" * doctest::description("testing 
 
 }
 
-TEST_CASE_FIXTURE(IRTestFixture, "testGetCFG" * doctest::description("testing get method cfg")) {
+TEST_CASE_FIXTURE(IRTestFixture, "testGetCFG"
+    * doctest::description("testing get method cfg")) {
 
     al::World::getLogger().Progress("Testing get method cfg ...");
 
@@ -298,7 +302,8 @@ TEST_CASE_FIXTURE(IRTestFixture, "testGetCFG" * doctest::description("testing ge
 
 }
 
-TEST_CASE_FIXTURE(IRTestFixture, "testGetCFG2" * doctest::description("testing get another method cfg")) {
+TEST_CASE_FIXTURE(IRTestFixture, "testGetCFG2"
+    * doctest::description("testing get another method cfg")) {
 
     al::World::getLogger().Progress("Testing get another method cfg ...");
 
@@ -376,7 +381,8 @@ TEST_CASE_FIXTURE(IRTestFixture, "testGetCFG2" * doctest::description("testing g
     al::World::getLogger().Success("Finish testing get another method cfg ...");
 }
 
-TEST_CASE_FIXTURE(IRTestFixture, "testGetCFG3" * doctest::description("testing get the last method cfg")) {
+TEST_CASE_FIXTURE(IRTestFixture, "testGetCFG3"
+    * doctest::description("testing get the last method cfg")) {
 
     al::World::getLogger().Progress("Testing get the last method cfg ...");
 

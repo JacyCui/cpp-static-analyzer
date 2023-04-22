@@ -12,6 +12,7 @@ add_library(libanalyzer
         language/Type.cpp
         language/DefaultTypeBuilder.cpp
         analysis/graph/DefaultCFG.cpp
+        config/DefaultAnalysisConfig.cpp
         )
 
 target_link_libraries(libanalyzer

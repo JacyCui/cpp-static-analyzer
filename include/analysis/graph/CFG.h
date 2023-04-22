@@ -3,8 +3,8 @@
 
 #include <unordered_map>
 #include <unordered_set>
+#include <memory>
 
-#include <memory> // for std::*_ptr
 namespace analyzer::ir {
     class IR;
     class Stmt;

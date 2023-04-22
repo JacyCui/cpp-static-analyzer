@@ -15,8 +15,7 @@ namespace analyzer::language {
     /**
      * @class CPPMethod
      * @brief Represents methods in the program. Each instance contains various
-     * information of a method, including method name, signature, declaring class,
-     * method body (IR), etc.
+     * information of a method, including method name, signature, method body (IR), etc.
      */
     class CPPMethod final {
     public:

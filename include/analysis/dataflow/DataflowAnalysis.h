@@ -80,7 +80,6 @@ namespace analyzer::analysis::dataflow {
     };
 
 
-
 } // dataflow
 
 #endif //STATIC_ANALYZER_DATAFLOWANALYSIS_H
