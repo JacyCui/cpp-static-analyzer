@@ -50,7 +50,7 @@ clang --version
 
 ### On Ubuntu 22.04
 
-Using [llvm apt source]((https://apt.llvm.org/)), run
+Using [llvm apt source](https://apt.llvm.org/), run
 
 ```shell
 sudo apt update 
