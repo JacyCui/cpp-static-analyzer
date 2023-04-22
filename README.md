@@ -1,17 +1,34 @@
 # A Simple CPP Static Analyzer
 
+> Copyright (C) 2022 Jiacai Cui <201220014@smail.nju.edu.cn>
+
+## Introduction
+
+This is a simple cpp static analyzer developed during
+a software engineering lab course of Nanjing University.
+
+The project is personal and distributed
+under [GNU general public license](LICENSE).
+
+The design of this project is well inspired by 
+[tai-e](https://github.com/pascal-lab/Tai-e.git), 
+a static analysis framework for java, please view 
+its [technique report](https://arxiv.org/abs/2208.00337) 
+for more details.
+
 ## Environment Setup
 
-This app static analyzer uses clang as its front end. 
-So you need to install llvm and clang on your system. 
-This is developed under [llvm](https://llvm.org/) 
+This cpp static analyzer uses clang as its front end. 
+So you need to install llvm and clang on your local 
+system inorder to build and run this project. 
+It is developed under [llvm](https://llvm.org/) 
 16.0.2, tested under llvm 16.0.2 and 17.0.0, 
 but more recent versions should also be ok.
 
 It is recommended to install llvm using precompiled binaries
 instead of building from source manually. 
 
-Here is the way to config the proper environment of this
+Here is the way to set up the proper environment of this
 project.
 
 ### On MacOS
@@ -52,9 +69,15 @@ clang-17 --version
 llvm-config-17 --version
 ```
 
-## Compile Project and Run Tests to Check Setup
+## Get the Project
 
-To compile this project, in the project root directory, run
+```shell
+git clone https://github.com/JacyCui/cpp-static-analyzer.git
+```
+
+### Build
+
+In the project root directory, run
 
 ```shell
 mkdir build
@@ -63,7 +86,9 @@ cmake -G=Ninja ..
 ninja
 ```
 
-To run tests, after building, **in the project root directory**, run
+### Run Tests
+
+After compiling, **in the project root directory**, run
 
 ```shell
 ./build/tests/tests
