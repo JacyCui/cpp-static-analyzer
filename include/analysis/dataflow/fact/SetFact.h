@@ -6,6 +6,8 @@
 #include <functional>
 #include <algorithm>
 
+#include "util/Copyable.h"
+
 namespace analyzer::analysis::dataflow::fact {
 
     /**
@@ -17,7 +19,7 @@ namespace analyzer::analysis::dataflow::fact {
      * @tparam E elements type
      */
     template <typename E>
-    class SetFact final {
+    class SetFact final: public util::Copyable<SetFact<E>> {
     public:
 
         /**
@@ -146,7 +148,7 @@ namespace analyzer::analysis::dataflow::fact {
         /**
          * @return creates and returns a copy of this fact.
          */
-        [[nodiscard]] std::shared_ptr<SetFact<E>> copy() const
+        [[nodiscard]] std::shared_ptr<SetFact<E>> copy() const override
         {
             return std::make_shared<SetFact<E>>(set);
         }
@@ -218,7 +220,7 @@ namespace analyzer::analysis::dataflow::fact {
 
     };
 
-} // dataflow
+} // fact
 
 
 #endif //STATIC_ANALYZER_SETFACT_H
