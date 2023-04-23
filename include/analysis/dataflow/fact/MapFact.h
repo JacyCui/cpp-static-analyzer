@@ -78,7 +78,7 @@ namespace analyzer::analysis::dataflow::fact {
         {
             bool changed = false;
             for (const auto& [key, value] : fact->getMap()) {
-                changed = changed || update(key, value);
+                changed = update(key, value) || changed;
             }
             return changed;
         }
@@ -87,7 +87,7 @@ namespace analyzer::analysis::dataflow::fact {
          * @brief creates and returns a copy of this fact
          * @return a copy of this fact
          */
-        [[nodiscard]] std::shared_ptr<MapFact<K, V>> copy() override
+        [[nodiscard]] std::shared_ptr<MapFact<K, V>> copy() const override
         {
             return std::make_shared<MapFact<K, V>>(map);
         }
