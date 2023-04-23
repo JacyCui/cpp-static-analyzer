@@ -2,7 +2,6 @@
 #define STATIC_ANALYZER_SETFACT_H
 
 #include <unordered_set>
-#include <memory>
 #include <functional>
 #include <algorithm>
 
@@ -146,7 +145,8 @@ namespace analyzer::analysis::dataflow::fact {
         }
 
         /**
-         * @return creates and returns a copy of this fact.
+         * @brief creates and returns
+         * @return a copy of this fact
          */
         [[nodiscard]] std::shared_ptr<SetFact<E>> copy() const override
         {
