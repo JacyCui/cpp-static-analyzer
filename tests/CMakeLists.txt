@@ -2,7 +2,9 @@ add_executable(tests
         main.cpp
         TestWorld.cpp
         TestCPPMethod.cpp
-        TestIR.cpp)
+        TestIR.cpp
+        TestDataflowFacts.cpp
+        )
 
 target_link_libraries(tests
         libanalyzer

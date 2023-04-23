@@ -11,6 +11,9 @@ namespace analyzer::analysis::dataflow::fact {
     /**
      * @class SetFact
      * @brief Represents set-like data-flow facts.
+     *
+     * Elements are checked by identity rather than equality !!!
+     *
      * @tparam E elements type
      */
     template <typename E>
@@ -55,7 +58,15 @@ namespace analyzer::analysis::dataflow::fact {
         bool removeIf(std::function<bool(const std::shared_ptr<E>&)> filter)
         {
             std::size_t oldSize = set.size();
-            set.erase(std::remove_if(set.begin(), set.end(), filter), set.end());
+            std::vector<std::shared_ptr<E>> toRemove;
+            for (const std::shared_ptr<E>& e : set) {
+                if (filter(e)) {
+                    toRemove.emplace_back(e);
+                }
+            }
+            for (const std::shared_ptr<E>& e : toRemove) {
+                set.erase(e);
+            }
             return set.size() != oldSize;
         }
 
@@ -188,7 +199,7 @@ namespace analyzer::analysis::dataflow::fact {
          * @brief Construct an empty set
          */
         SetFact()
-            : SetFact({})
+            : SetFact(std::unordered_set<std::shared_ptr<E>>{})
         {
 
         }
