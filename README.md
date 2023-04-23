@@ -31,7 +31,7 @@ instead of building from source manually.
 Here is the way to set up the proper environment of this
 project.
 
-### On MacOS
+### On macOS
 
 Use [homebrew](https://brew.sh/) as the package manager, run 
 
