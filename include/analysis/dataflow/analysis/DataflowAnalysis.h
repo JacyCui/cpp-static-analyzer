@@ -3,8 +3,11 @@
 
 #include "World.h"
 #include "analysis/graph/CFG.h"
+#include "analysis/Analysis.h"
+#include "analysis/dataflow/fact/DataflowResult.h"
+#include "analysis/dataflow/solver/Solver.h"
 
-namespace analyzer::analysis::dataflow {
+namespace analyzer::analysis::dataflow::analysis {
 
     /**
      * @brief Template interface for defining data-flow analysis.
@@ -12,21 +15,22 @@ namespace analyzer::analysis::dataflow {
      */
     template<typename Fact>
     class DataFlowAnalysis {
+
         /**
          * @return true if this analysis is forward, otherwise false.
          */
-        virtual bool isForward() const = 0;
+        [[nodiscard]] virtual bool isForward() const = 0;
 
         /**
          * @return new fact in boundary conditions, i.e., the fact for
          * entry (exit) node in forward (backward) analysis.
          */
-        virtual std::shared_ptr<Fact> newBoundaryFact() const = 0;
+        [[nodiscard]] virtual std::shared_ptr<Fact> newBoundaryFact() const = 0;
 
         /**
          * @return new initial fact for non-boundary nodes.
          */
-        virtual std::shared_ptr<Fact> newInitialFact() const = 0;
+        [[nodiscard]] virtual std::shared_ptr<Fact> newInitialFact() const = 0;
 
         /**
          * @brief Meets a fact into another (target) fact.
@@ -53,7 +57,7 @@ namespace analyzer::analysis::dataflow {
          * @param edge the edge to check
          * @return true if this analysis needs to perform transfer for given edge, otherwise false.
          */
-        virtual bool needTransferEdge(std::shared_ptr<graph::CFGEdge> edge) const {
+        [[nodiscard]] virtual bool needTransferEdge(std::shared_ptr<graph::CFGEdge> edge) const {
             return false;
         }
 
@@ -69,17 +73,49 @@ namespace analyzer::analysis::dataflow {
         virtual std::shared_ptr<Fact> transferEdge(std::shared_ptr<graph::CFGEdge> edge, Fact nodeFact) const {
             World::getLogger().Error("Transfer Edge is unsupported in dataflow analysis by default.");
             throw std::runtime_error("Transfer Edge is unsupported in dataflow analysis by default.");
+            return nullptr;
         }
 
         /**
          * @return the control-flow graph that this analysis works on.
          */
-        virtual std::shared_ptr<graph::CFG> getCFG() const = 0;
+        [[nodiscard]] virtual std::shared_ptr<graph::CFG> getCFG() const = 0;
 
         virtual ~DataFlowAnalysis() = default;
+
     };
 
+    template <typename Fact>
+    class AnalysisDriver: public MethodAnalysis<fact::DataflowResult<Fact>> {
+    public:
 
-} // dataflow
+        [[nodiscard]] std::shared_ptr<fact::DataflowResult<Fact>>
+            analyze(std::shared_ptr<ir::IR> myIR) override
+        {
+            std::shared_ptr<graph::CFG> cfg = myIR->getCFG();
+            std::unique_ptr<DataFlowAnalysis<Fact>> analysis = makeAnalysis(cfg);
+            std::unique_ptr<solver::Solver<Fact>> solver = solver::makeSolver<Fact>();
+            return solver->solve(analysis);
+        }
+
+    protected:
+
+        /**
+         * @brief Creates an analysis object for given cfg.
+         * @param cfg a control flow graph
+         * @return a dataflow analysis object
+         */
+        virtual std::unique_ptr<DataFlowAnalysis<Fact>>
+            makeAnalysis(const std::shared_ptr<graph::CFG>& cfg) const = 0;
+
+        explicit AnalysisDriver(std::unique_ptr<config::AnalysisConfig>& analysisConfig)
+                :MethodAnalysis<fact::DataflowResult<Fact>>(analysisConfig)
+        {
+
+        }
+
+    };
+
+} // analysis
 
 #endif //STATIC_ANALYZER_DATAFLOWANALYSIS_H

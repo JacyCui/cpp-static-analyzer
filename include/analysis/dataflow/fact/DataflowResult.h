@@ -74,6 +74,6 @@ namespace analyzer::analysis::dataflow::fact {
 
     };
 
-}
+} // fact
 
 #endif //STATIC_ANALYZER_DATAFLOWRESULT_H

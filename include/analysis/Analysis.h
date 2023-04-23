@@ -45,6 +45,8 @@ namespace analyzer::analysis {
          */
         [[nodiscard]] virtual std::shared_ptr<R> analyze(std::shared_ptr<ir::IR> myIR) = 0;
 
+    protected:
+
         explicit MethodAnalysis(std::unique_ptr<config::AnalysisConfig>& analysisConfig)
             :Analysis(analysisConfig)
         {
