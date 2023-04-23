@@ -2,6 +2,7 @@
 
 #include <string>
 
+#include "World.h"
 #include "analysis/dataflow/fact/SetFact.h"
 
 namespace fact = analyzer::analysis::dataflow::fact;
@@ -10,6 +11,8 @@ TEST_SUITE_BEGIN("testDataflowFacts");
 
 TEST_CASE("testSetFact"
     * doctest::description("testing set like facts for dataflow analysis")) {
+
+    analyzer::World::getLogger().Progress("Testing set like facts for dataflow analysis ...");
 
     std::shared_ptr<std::string> s1 = std::make_shared<std::string>("s1");
     std::shared_ptr<std::string> s2 = std::make_shared<std::string>("s2");
@@ -73,6 +76,8 @@ TEST_CASE("testSetFact"
 
     test2->removeAll(test1);
     CHECK(test2->isEmpty());
+
+    analyzer::World::getLogger().Progress("Finish testing set like facts for dataflow analysis ...");
 
 }
 
