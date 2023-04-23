@@ -50,8 +50,8 @@ namespace analyzer::analysis::dataflow::fact {
          * @param inFacts all in-flowing facts
          * @param outFacts all out-flowing facts
          */
-        DataflowResult(std::unordered_map<std::shared_ptr<ir::Stmt>, Fact> inFacts,
-            std::unordered_map<std::shared_ptr<ir::Stmt>, Fact> outFacts)
+        DataflowResult(std::unordered_map<std::shared_ptr<ir::Stmt>, std::shared_ptr<Fact>> inFacts,
+            std::unordered_map<std::shared_ptr<ir::Stmt>, std::shared_ptr<Fact>> outFacts)
             :inFacts(std::move(inFacts)), outFacts(std::move(outFacts))
         {
 

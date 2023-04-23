@@ -139,7 +139,7 @@ namespace analyzer::analysis::dataflow::fact {
          * @brief sets the content of this set to the same as other set.
          * @param other another set fact
          */
-        void setSet(const std::shared_ptr<SetFact<E>>& other)
+        void setSetFact(const std::shared_ptr<SetFact<E>>& other)
         {
             set = other->getSet();
         }

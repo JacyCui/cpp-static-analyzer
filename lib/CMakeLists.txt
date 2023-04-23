@@ -13,6 +13,7 @@ add_library(libanalyzer
         language/DefaultTypeBuilder.cpp
         analysis/graph/DefaultCFG.cpp
         config/DefaultAnalysisConfig.cpp
+        analysis/dataflow/ReachingDefinition.cpp
         )
 
 target_link_libraries(libanalyzer

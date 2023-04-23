@@ -71,7 +71,7 @@ TEST_CASE("testSetFact"
     }));
     CHECK(test2->isEmpty());
 
-    test2->setSet(test1);
+    test2->setSetFact(test1);
     CHECK_EQ(test2->size(), 4);
     CHECK(test1->equalsTo(test2));
 

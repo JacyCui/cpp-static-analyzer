@@ -13,6 +13,10 @@ namespace analyzer::analysis {
      * @brief abstract base class for all analysis
      */
     class Analysis {
+    public:
+
+        virtual ~Analysis() = default;
+
     protected:
 
         /**

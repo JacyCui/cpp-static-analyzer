@@ -27,6 +27,8 @@ namespace analyzer::analysis {
          */
         [[nodiscard]] virtual std::shared_ptr<R> getResult(std::shared_ptr<ir::Stmt> stmt) const = 0;
 
+        virtual ~StmtResult() = default;
+
     };
 
 }
