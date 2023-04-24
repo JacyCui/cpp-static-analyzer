@@ -100,8 +100,8 @@ assertions are passed.
 ```shell
 # a lot of log information here ...
 ===============================================================================
-[doctest] test cases:  14 |  14 passed | 0 failed | 0 skipped
-[doctest] assertions: 255 | 255 passed | 0 failed |
+[doctest] test cases:  19 |  19 passed | 0 failed | 0 skipped
+[doctest] assertions: 411 | 411 passed | 0 failed |
 [doctest] Status: SUCCESS!
 ```
 
