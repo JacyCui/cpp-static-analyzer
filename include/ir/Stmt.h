@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <unordered_set>
+#include <unordered_map>
 
 #include "ir/Var.h"
 
@@ -117,7 +118,8 @@ namespace analyzer::ir {
          * @return a statement
          */
         [[nodiscard]] virtual std::shared_ptr<Stmt>
-                buildStmt(const lang::CPPMethod &method, const clang::Stmt* clangStmt) = 0;
+            buildStmt(const lang::CPPMethod &method, const clang::Stmt* clangStmt,
+                std::unordered_map<const clang::VarDecl*, std::shared_ptr<Var>>& varPool) = 0;
 
         /**
          * @brief build an empty statement in a given method
@@ -161,7 +163,8 @@ namespace analyzer::ir {
          * @param method the method containing this method
          * @param clangStmt a clang AST node of type Stmt
          */
-        ClangStmtWrapper(const lang::CPPMethod& method, const clang::Stmt* clangStmt);
+        ClangStmtWrapper(const lang::CPPMethod& method, const clang::Stmt* clangStmt,
+            std::unordered_map<const clang::VarDecl*, std::shared_ptr<Var>>& varPool);
 
     private:
 
@@ -192,7 +195,8 @@ namespace analyzer::ir {
     class DefaultStmtBuilder: public StmtBuilder {
 
         [[nodiscard]] std::shared_ptr<Stmt>
-            buildStmt(const lang::CPPMethod& method, const clang::Stmt* clangStmt) override;
+            buildStmt(const lang::CPPMethod& method, const clang::Stmt* clangStmt,
+                std::unordered_map<const clang::VarDecl*, std::shared_ptr<Var>>& varPool) override;
 
         [[nodiscard]] std::shared_ptr<Stmt>
             buildEmptyStmt(const lang::CPPMethod &method) override;

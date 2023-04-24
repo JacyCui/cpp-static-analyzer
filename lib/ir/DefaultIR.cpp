@@ -6,9 +6,9 @@
 namespace analyzer::ir {
 
     DefaultIR::DefaultIR(const lang::CPPMethod& method,
-                         const std::vector<std::shared_ptr<Var>>& params,
-                         const std::unordered_map<std::uint64_t, std::shared_ptr<Var>>& vars,
-                         const std::vector<std::shared_ptr<Stmt>>& stmts,
+                         std::vector<std::shared_ptr<Var>> params,
+                         std::vector<std::shared_ptr<Var>> vars,
+                         std::vector<std::shared_ptr<Stmt>> stmts,
                          const std::shared_ptr<graph::CFG>& cfg)
             :method(method), params(std::move(params)), vars(std::move(vars)),
                 stmts(std::move(stmts)), cfg(cfg)
@@ -33,20 +33,7 @@ namespace analyzer::ir {
 
     std::vector<std::shared_ptr<Var>> DefaultIR::getVars() const
     {
-        std::vector<std::shared_ptr<Var>> result;
-        result.reserve(vars.size());
-        for (auto& [_, var] : vars) {
-            result.emplace_back(var);
-        }
-        return result;
-    }
-
-    std::shared_ptr<Var> DefaultIR::getVarByIdentity(std::uint64_t id) const
-    {
-        if (vars.find(id) != vars.end()) {
-            return vars.at(id);
-        }
-        return nullptr;
+        return vars;
     }
 
     std::vector<std::shared_ptr<Stmt>> DefaultIR::getStmts() const

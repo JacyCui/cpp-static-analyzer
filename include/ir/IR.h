@@ -44,13 +44,6 @@ namespace analyzer::ir {
         [[nodiscard]] virtual std::vector<std::shared_ptr<Var>> getVars() const = 0;
 
         /**
-         * @brief get a variable by its unique identity
-         * @param id each variable is bound to a unique identity number
-         * @return a variable if exists, otherwise nullptr
-         */
-        [[nodiscard]] virtual std::shared_ptr<Var> getVarByIdentity(std::uint64_t id) const = 0;
-
-        /**
          * @return the statements in this ir
          */
         [[nodiscard]] virtual std::vector<std::shared_ptr<Stmt>> getStmts() const = 0;
@@ -74,14 +67,12 @@ namespace analyzer::ir {
 
         [[nodiscard]] std::vector<std::shared_ptr<Var>> getVars() const override;
 
-        [[nodiscard]] std::shared_ptr<Var> getVarByIdentity(std::uint64_t id) const override;
-
         [[nodiscard]] std::vector<std::shared_ptr<Stmt>> getStmts() const override;
 
         // functions below should not be called from user
 
         /**
-         * @brief Construct a default ir of this
+         * @brief Construct a default ir of method
          * @param method the method this ir is representing
          * @param params the parameter variables in this ir
          * @param vars the variables concerned in this ir
@@ -89,9 +80,9 @@ namespace analyzer::ir {
          * @param cfg the cfg derived from this ir
          */
         DefaultIR(const lang::CPPMethod& method,
-                  const std::vector<std::shared_ptr<Var>>& params,
-                  const std::unordered_map<std::uint64_t, std::shared_ptr<Var>>& vars,
-                  const std::vector<std::shared_ptr<Stmt>>& stmts,
+                  std::vector<std::shared_ptr<Var>> params,
+                  std::vector<std::shared_ptr<Var>> vars,
+                  std::vector<std::shared_ptr<Stmt>> stmts,
                   const std::shared_ptr<graph::CFG>& cfg);
 
     private:
@@ -100,7 +91,7 @@ namespace analyzer::ir {
 
         const std::vector<std::shared_ptr<Var>> params; ///< the parameter variables in this ir
 
-        const std::unordered_map<std::uint64_t, std::shared_ptr<Var>> vars; ///< the variables concerned in this ir
+        const std::vector<std::shared_ptr<Var>> vars; ///< the variables concerned in this ir
 
         const std::vector<std::shared_ptr<Stmt>> stmts; ///< the statements of this ir
 
@@ -165,7 +156,7 @@ namespace analyzer::ir {
 
         std::vector<std::shared_ptr<Var>> params; ///< the parameter variables
 
-        std::unordered_map<std::uint64_t, std::shared_ptr<Var>> vars; ///< all variables concerned
+        std::unordered_map<const clang::VarDecl*, std::shared_ptr<Var>> varPool; ///< all variables concerned
 
         std::unordered_map<const clang::Stmt*, std::shared_ptr<Stmt>> stmts; ///< all non-empty statements in this ir
 

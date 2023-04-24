@@ -36,7 +36,13 @@ namespace analyzer::ir {
         for (const auto& [_, s]: stmts) {
             stmtVec.emplace_back(s);
         }
-        std::shared_ptr<DefaultIR> myIR = std::make_shared<DefaultIR>(method, params, vars, stmtVec, cfg);
+        std::vector<std::shared_ptr<Var>> vars;
+        vars.reserve(varPool.size());
+        for (auto& [_, var] : varPool) {
+            vars.emplace_back(var);
+        }
+        std::shared_ptr<DefaultIR> myIR = std::make_shared<DefaultIR>(
+                method, std::move(params), std::move(vars), std::move(stmtVec), cfg);
         cfg->setIR(myIR);
         World::getLogger().Success("IR of " + method.getMethodSignatureAsString() +
             " has been built by default ir builder ...");
@@ -50,7 +56,7 @@ namespace analyzer::ir {
             std::shared_ptr<Var> pi = World::get().getVarBuilder()->buildVar(method,
                 method.getFunctionDecl()->getParamDecl(i));
             params.emplace_back(pi);
-            vars.emplace(pi->getIdentity(), pi);
+            varPool.emplace(pi->getClangVarDecl(), pi);
         }
     }
 
@@ -60,16 +66,16 @@ namespace analyzer::ir {
             for (const clang::CFGElement& element: *block) {
                 if (std::optional<clang::CFGStmt> cfgStmt = element.getAs<clang::CFGStmt>()) {
                     std::shared_ptr<Stmt> s = World::get().
-                            getStmtBuilder()->buildStmt(method, cfgStmt->getStmt());
+                            getStmtBuilder()->buildStmt(method, cfgStmt->getStmt(), varPool);
                     stmts.emplace(cfgStmt->getStmt(), s);
                     for (const std::shared_ptr<Var>& v : s->getDefs()) {
-                        if (vars.find(v->getIdentity()) == vars.end()) {
-                            vars.emplace(v->getIdentity(), v);
+                        if (varPool.find(v->getClangVarDecl()) == varPool.end()) {
+                            varPool.emplace(v->getClangVarDecl(), v);
                         }
                     }
                     for (const std::shared_ptr<Var>& v : s->getUses()) {
-                        if (vars.find(v->getIdentity()) == vars.end()) {
-                            vars.emplace(v->getIdentity(), v);
+                        if (varPool.find(v->getClangVarDecl()) == varPool.end()) {
+                            varPool.emplace(v->getClangVarDecl(), v);
                         }
                     }
                 }

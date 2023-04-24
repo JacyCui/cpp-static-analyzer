@@ -36,10 +36,9 @@ namespace analyzer::ir {
         [[nodiscard]] virtual std::shared_ptr<lang::Type> getType() const = 0;
 
         /**
-         * @brief if two variable has the same identity, they refer to the same variable
-         * @return the identity of this variable
+         * @return the clang VarDecl ast node of this variable
          */
-        [[nodiscard]] virtual std::uint64_t getIdentity() const = 0;
+        [[nodiscard]] virtual const clang::VarDecl* getClangVarDecl() const = 0;
 
         virtual ~Var() = default;
 
@@ -78,9 +77,7 @@ namespace analyzer::ir {
 
         [[nodiscard]] std::shared_ptr<lang::Type> getType() const override;
 
-        [[nodiscard]] std::uint64_t getIdentity() const override;
-
-        // the method below should not be called from user
+        [[nodiscard]] const clang::VarDecl* getClangVarDecl() const override;
 
         /**
          * Construct a clang wrapper

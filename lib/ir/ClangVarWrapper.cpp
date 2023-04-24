@@ -27,9 +27,9 @@ namespace analyzer::ir {
         return type;
     }
 
-    std::uint64_t ClangVarWrapper::getIdentity() const
+    const clang::VarDecl* ClangVarWrapper::getClangVarDecl() const
     {
-        return reinterpret_cast<std::uint64_t>(varDecl);
+        return varDecl;
     }
 
 }

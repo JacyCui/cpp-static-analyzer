@@ -50,7 +50,6 @@ TEST_CASE_FIXTURE(IRTestFixture, "testGetVars"
     * doctest::description("testing get method variables")) {
 
     al::World::getLogger().Progress("Testing get method variables ...");
-
     std::vector<std::shared_ptr<air::Var>>&& vars1 = ir1->getVars();
     std::unordered_map<std::string, std::string> output1;
     for (const std::shared_ptr<air::Var>& v : vars1) {
@@ -58,7 +57,7 @@ TEST_CASE_FIXTURE(IRTestFixture, "testGetVars"
     }
     CHECK_EQ(output1, std::unordered_map<std::string, std::string>{
         {"a", "int"}, {"argc", "int"}, {"argv", "char **"}, {"b", "int"},
-        {"c", "int"}, {"e", "int"}
+        {"c", "int"}, {"d", "int"}, {"e", "int"}
     });
 
     std::vector<std::shared_ptr<air::Var>>&& vars2 = ir2->getVars();

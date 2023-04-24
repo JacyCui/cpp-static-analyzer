@@ -119,8 +119,9 @@ TEST_CASE_FIXTURE(ReachDefTestFixture, "testDataflowCaseFoo"
 
     std::shared_ptr<dfact::DataflowResult<dfact::SetFact<air::Stmt>>> result = rd->analyze(ir1);
 
-//    CHECK(result->getResult(cfg->getEntry())->isEmpty());
-//    CHECK(result->getInFact(s1)->isEmpty());
+    CHECK(result->getResult(cfg->getEntry())->isEmpty());
+    CHECK(result->getInFact(s1)->isEmpty());
+    al::World::getLogger().Debug(std::to_string(result->getOutFact(s1)->size()));
 //    CHECK(result->getOutFact(s1)->isEmpty());
 //    CHECK(result->getInFact(s2)->isEmpty());
 //    CHECK(result->getOutFact(s2)->isEmpty());
@@ -129,7 +130,7 @@ TEST_CASE_FIXTURE(ReachDefTestFixture, "testDataflowCaseFoo"
 //    CHECK(result->getInFact(s4)->isEmpty());
 //    CHECK(result->getOutFact(s4)->equalsTo(std::make_shared<dfact::SetFact<air::Stmt>>(std::unordered_set{s4})));
 
-    //al::World::getLogger().Progress("Finish testing dataflow example foo with if-else");
+    al::World::getLogger().Progress("Finish testing dataflow example foo with if-else");
 
 }
 

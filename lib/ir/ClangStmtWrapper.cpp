@@ -8,11 +8,10 @@
 
 namespace analyzer::ir {
 
-    ClangStmtWrapper::ClangStmtWrapper(const lang::CPPMethod& method, const clang::Stmt* clangStmt)
+    ClangStmtWrapper::ClangStmtWrapper(const lang::CPPMethod& method,
+        const clang::Stmt* clangStmt, std::unordered_map<const clang::VarDecl*, std::shared_ptr<Var>>& varPool)
         : method(method), clangStmt(clangStmt)
     {
-
-        std::unordered_map<const clang::VarDecl*, std::shared_ptr<Var>> vars;
 
         class StmtProcessor: public clang::RecursiveASTVisitor<StmtProcessor> {
         private:
@@ -81,7 +80,7 @@ namespace analyzer::ir {
 
         };
 
-        StmtProcessor stmtProcessor(vars, uses, defs, method);
+        StmtProcessor stmtProcessor(varPool, uses, defs, method);
         stmtProcessor.TraverseStmt(const_cast<clang::Stmt*>(clangStmt));
 
         const clang::SourceManager& sourceManager = method.getASTUnit()->getSourceManager();
