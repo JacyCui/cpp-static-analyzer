@@ -188,6 +188,17 @@ namespace analyzer::analysis::dataflow::fact {
         }
 
         /**
+         * @brief call processor function for each elements in this set fact
+         * @param processor a processor function to process each element
+         */
+        void forEach(std::function<void(std::shared_ptr<E>)> processor)
+        {
+            for (std::shared_ptr<E> e : set) {
+                processor(e);
+            }
+        }
+
+        /**
          * @brief Construct a set from a given set
          * @param set
          */

@@ -3,6 +3,7 @@
 
 #include <unordered_map>
 #include <unordered_set>
+#include <functional>
 
 #include "util/Copyable.h"
 
@@ -148,6 +149,17 @@ namespace analyzer::analysis::dataflow::fact {
         [[nodiscard]] bool equalsTo(const std::shared_ptr<MapFact<K, V>>& other) const
         {
             return map == other->getMap();
+        }
+
+        /**
+         * @brief call processor function for each key-value pairs in this map fact
+         * @param processor a processor function to process each key-value pair
+         */
+        void forEach(std::function<void(std::shared_ptr<K>, std::shared_ptr<V>)> processor)
+        {
+            for (auto [k, v] : map) {
+                processor(k, v);
+            }
         }
 
         /**

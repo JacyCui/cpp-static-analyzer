@@ -46,6 +46,13 @@ TEST_CASE("testSetFact"
     CHECK_FALSE(test1->contains(s5));
     CHECK_FALSE(test1->contains(s6));
 
+    std::vector<std::string> output1;
+    test1->forEach([&](const std::shared_ptr<std::string>& p) -> void {
+        output1.emplace_back(*p);
+    });
+    std::sort(output1.begin(), output1.end());
+    CHECK_EQ(output1, std::vector<std::string>{"s1", "s2", "s3", "s4"});
+
     std::shared_ptr<fact::SetFact<std::string>> test2 = test1->copy();
     CHECK(test2->equalsTo(test2));
     test2->clear();
@@ -129,6 +136,14 @@ TEST_CASE("testMapFact"
 
     CHECK_EQ(test1->keySet(), std::unordered_set<std::shared_ptr<std::string>>{k1, k2, k3, k4, k5});
     CHECK_EQ(test1->valueSet(), std::unordered_set<std::shared_ptr<std::string>>{v1, v2, v3, v4, v5});
+
+    std::unordered_map<std::string, std::string> output1;
+    test1->forEach([&](std::shared_ptr<std::string> k, std::shared_ptr<std::string> v) -> void {
+       output1.emplace(*k, *v);
+    });
+    CHECK_EQ(output1, std::unordered_map<std::string, std::string>{
+        {"k1", "v1"}, {"k2", "v2"}, {"k3", "v3"}, {"k4", "v4"}, {"k5", "v5"}
+    });
 
     std::shared_ptr<fact::MapFact<std::string, std::string>> test2 = test1->copy();
     CHECK_EQ(test2->size(), 5);
