@@ -138,7 +138,8 @@ TEST_CASE("testMapFact"
     CHECK_EQ(test1->valueSet(), std::unordered_set<std::shared_ptr<std::string>>{v1, v2, v3, v4, v5});
 
     std::unordered_map<std::string, std::string> output1;
-    test1->forEach([&](std::shared_ptr<std::string> k, std::shared_ptr<std::string> v) -> void {
+    test1->forEach([&](const std::shared_ptr<std::string>& k,
+            const std::shared_ptr<std::string>& v) -> void {
        output1.emplace(*k, *v);
     });
     CHECK_EQ(output1, std::unordered_map<std::string, std::string>{

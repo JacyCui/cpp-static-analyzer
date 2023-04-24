@@ -46,7 +46,9 @@ namespace analyzer::analysis::dataflow {
                 for (const std::shared_ptr<ir::Var>& def : stmt->getDefs()) {
                     out->removeAll(defs.at(def));
                 }
-                out->add(stmt);
+                if (!stmt->getDefs().empty()) {
+                    out->add(stmt);
+                }
                 return !out->equalsTo(oldOut);
             }
 
