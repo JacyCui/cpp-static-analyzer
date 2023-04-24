@@ -15,7 +15,7 @@ namespace analyzer::config {
         /**
          * @return the description of this analysis, just for human reading
          */
-        [[nodiscard]] virtual std::string getDescription() const = 0;
+        [[nodiscard]] virtual const std::string& getDescription() const = 0;
 
         virtual ~AnalysisConfig() = default;
 
@@ -24,7 +24,7 @@ namespace analyzer::config {
     class DefaultAnalysisConfig final: public AnalysisConfig {
     public:
 
-        [[nodiscard]] std::string getDescription() const override;
+        [[nodiscard]] const std::string& getDescription() const override;
 
         /**
          * @brief construct a default analysis config that only has a description

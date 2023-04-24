@@ -14,7 +14,7 @@ add_library(libanalyzer
         analysis/graph/DefaultCFG.cpp
         config/DefaultAnalysisConfig.cpp
         analysis/dataflow/ReachingDefinition.cpp
-        )
+        analysis/Analysis.cpp)
 
 target_link_libraries(libanalyzer
         ${LLVM_LIBS}

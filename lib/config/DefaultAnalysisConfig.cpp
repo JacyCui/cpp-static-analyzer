@@ -10,7 +10,7 @@ namespace analyzer::config {
 
     }
 
-    std::string DefaultAnalysisConfig::getDescription() const
+    const std::string& DefaultAnalysisConfig::getDescription() const
     {
         return description;
     }

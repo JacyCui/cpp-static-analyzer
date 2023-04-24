@@ -6,14 +6,15 @@
 #include "analysis/dataflow/fact/SetFact.h"
 #include "analysis/dataflow/fact/MapFact.h"
 
-namespace fact = analyzer::analysis::dataflow::fact;
+namespace al = analyzer;
+namespace fact = al::analysis::dataflow::fact;
 
 TEST_SUITE_BEGIN("testDataflowFacts");
 
 TEST_CASE("testSetFact"
     * doctest::description("testing set like facts for dataflow analysis")) {
 
-    analyzer::World::getLogger().Progress("Testing set like facts for dataflow analysis ...");
+    al::World::getLogger().Progress("Testing set like facts for dataflow analysis ...");
 
     std::shared_ptr<std::string> s1 = std::make_shared<std::string>("s1");
     std::shared_ptr<std::string> s2 = std::make_shared<std::string>("s2");
@@ -78,14 +79,14 @@ TEST_CASE("testSetFact"
     test2->removeAll(test1);
     CHECK(test2->isEmpty());
 
-    analyzer::World::getLogger().Success("Finish testing set like facts for dataflow analysis ...");
+    al::World::getLogger().Success("Finish testing set like facts for dataflow analysis ...");
 
 }
 
 TEST_CASE("testMapFact"
     * doctest::description("testing map like facts for dataflow analysis")) {
 
-    analyzer::World::getLogger().Progress("Testing map like facts for dataflow analysis ...");
+    al::World::getLogger().Progress("Testing map like facts for dataflow analysis ...");
 
     std::shared_ptr<std::string> k1 = std::make_shared<std::string>("k1");
     std::shared_ptr<std::string> k2 = std::make_shared<std::string>("k2");
@@ -151,7 +152,7 @@ TEST_CASE("testMapFact"
     CHECK_EQ(test2->size(), 2);
     CHECK_FALSE(test2->equalsTo(test1));
 
-    analyzer::World::getLogger().Success("Finish testing map like facts for dataflow analysis ...");
+    al::World::getLogger().Success("Finish testing map like facts for dataflow analysis ...");
 
 }
 

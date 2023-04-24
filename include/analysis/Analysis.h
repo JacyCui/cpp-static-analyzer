@@ -15,6 +15,8 @@ namespace analyzer::analysis {
     class Analysis {
     public:
 
+        [[nodiscard]] const std::unique_ptr<config::AnalysisConfig>& getAnalysisConfig() const;
+
         virtual ~Analysis() = default;
 
     protected:

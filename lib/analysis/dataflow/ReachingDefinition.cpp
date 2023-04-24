@@ -36,13 +36,15 @@ namespace analyzer::analysis::dataflow {
                 target->unionN(fact);
             }
 
-            bool transferNode(std::shared_ptr<ir::Stmt> stmt, std::shared_ptr<fact::SetFact<ir::Stmt>> in,
-                              std::shared_ptr<fact::SetFact<ir::Stmt>> out) const override
+            [[nodiscard]] bool transferNode(
+                    std::shared_ptr<ir::Stmt> stmt,
+                    std::shared_ptr<fact::SetFact<ir::Stmt>> in,
+                    std::shared_ptr<fact::SetFact<ir::Stmt>> out) const override
             {
                 std::shared_ptr<fact::SetFact<ir::Stmt>> oldOut = out->copy();
                 out->setSetFact(in);
                 for (const std::shared_ptr<ir::Var>& def : stmt->getDefs()) {
-                    out->removeAll(defs.at(def));
+                    out->removeAll(defs.at(def->getIdentity()));
                 }
                 out->add(stmt);
                 return !out->equalsTo(oldOut);
@@ -59,16 +61,16 @@ namespace analyzer::analysis::dataflow {
             void computeDefs(const std::shared_ptr<ir::IR>& myIR)
             {
                 for (const std::shared_ptr<ir::Var>& var : myIR->getVars()) {
-                    defs.emplace(var, std::make_shared<fact::SetFact<ir::Stmt>>());
+                    defs.emplace(var->getIdentity(), std::make_shared<fact::SetFact<ir::Stmt>>());
                 }
                 for (const std::shared_ptr<ir::Stmt>& stmt : myIR->getStmts()) {
                     for (const std::shared_ptr<ir::Var>& var : stmt->getDefs()) {
-                        defs.at(var)->add(stmt);
+                        defs.at(var->getIdentity())->add(stmt);
                     }
                 }
             }
 
-            std::unordered_map<std::shared_ptr<ir::Var>, std::shared_ptr<fact::SetFact<ir::Stmt>>> defs;
+            std::unordered_map<std::uint64_t, std::shared_ptr<fact::SetFact<ir::Stmt>>> defs;
 
         };
 

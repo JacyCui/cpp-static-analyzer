@@ -4,6 +4,7 @@ add_executable(tests
         TestCPPMethod.cpp
         TestIR.cpp
         TestDataflowFacts.cpp
+        TestReachingDefinition.cpp
         )
 
 target_link_libraries(tests
