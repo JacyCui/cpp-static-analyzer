@@ -94,7 +94,7 @@ After compiling, **in the project root directory**, run
 ./build/tests/tests
 ```
 
-And then, you should see something like below, which means the 255 
+And then, you should see something like below, which means the **411** 
 assertions are passed.
 
 ```shell
