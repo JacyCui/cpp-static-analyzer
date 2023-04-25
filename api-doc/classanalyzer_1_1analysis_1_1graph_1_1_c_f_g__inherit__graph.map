@@ -1,4 +1,0 @@
-<map id="analyzer::analysis::graph::CFG" name="analyzer::analysis::graph::CFG">
-<area shape="rect" id="node1" title="the interface for a CFG using statements as its nodes" alt="" coords="12,5,139,45"/>
-<area shape="rect" id="node2" href="$classanalyzer_1_1analysis_1_1graph_1_1_default_c_f_g.html" title="a default implementation of cfg" alt="" coords="5,93,145,133"/>
-</map>

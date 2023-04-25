@@ -1,4 +1,0 @@
-<map id="analyzer::analysis::graph::CFGEdge" name="analyzer::analysis::graph::CFGEdge">
-<area shape="rect" id="node1" title="the interface for a CFG Edge" alt="" coords="27,5,155,45"/>
-<area shape="rect" id="node2" href="$classanalyzer_1_1analysis_1_1graph_1_1_default_c_f_g_edge.html" title="the default implementation of a cfg edge" alt="" coords="5,93,176,133"/>
-</map>

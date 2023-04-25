@@ -1,4 +1,0 @@
-<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="node1" href="$classanalyzer_1_1analysis_1_1dataflow_1_1_dataflow_analysis.html" title="Template interface for defining data&#45;flow analysis." alt="" coords="5,5,195,60"/>
-<area shape="rect" id="node2" href="$classanalyzer_1_1analysis_1_1dataflow_1_1_abstract_dataflow_analysis.html" title="An abstract dataflow analysis that implements some general logic." alt="" coords="243,5,431,60"/>
-</map>

@@ -1,4 +1,0 @@
-<map id="analyzer::language::TypeBuilder" name="analyzer::language::TypeBuilder">
-<area shape="rect" id="node1" title="build type from clang qual type" alt="" coords="10,5,141,45"/>
-<area shape="rect" id="node2" href="$classanalyzer_1_1language_1_1_default_type_builder.html" title="the default implementation of type builder" alt="" coords="5,93,145,133"/>
-</map>

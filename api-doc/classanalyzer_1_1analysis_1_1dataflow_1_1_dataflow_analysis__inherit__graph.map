@@ -1,4 +1,0 @@
-<map id="analyzer::analysis::dataflow::DataflowAnalysis&lt; Fact &gt;" name="analyzer::analysis::dataflow::DataflowAnalysis&lt; Fact &gt;">
-<area shape="rect" id="node1" title="Template interface for defining data&#45;flow analysis." alt="" coords="5,5,195,60"/>
-<area shape="rect" id="node2" href="$classanalyzer_1_1analysis_1_1dataflow_1_1_abstract_dataflow_analysis.html" title="An abstract dataflow analysis that implements some general logic." alt="" coords="6,108,194,163"/>
-</map>

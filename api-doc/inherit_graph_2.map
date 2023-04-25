@@ -1,5 +1,0 @@
-<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="node1" href="$classanalyzer_1_1analysis_1_1dataflow_1_1solver_1_1_solver.html" title="Interface of data&#45;flow analysis solver." alt="" coords="5,5,136,60"/>
-<area shape="rect" id="node2" href="$classanalyzer_1_1analysis_1_1dataflow_1_1solver_1_1_abstract_solver.html" title="provides common functionalities for Solver" alt="" coords="184,5,343,60"/>
-<area shape="rect" id="node3" href="$classanalyzer_1_1analysis_1_1dataflow_1_1solver_1_1_work_list_solver.html" title="a Work&#45;list solver" alt="" coords="391,5,551,60"/>
-</map>

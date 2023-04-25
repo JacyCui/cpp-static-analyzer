@@ -1,4 +1,0 @@
-<map id="analyzer::language::Type" name="analyzer::language::Type">
-<area shape="rect" id="node1" title="Represents the type." alt="" coords="10,5,141,45"/>
-<area shape="rect" id="node2" href="$classanalyzer_1_1language_1_1_clang_type_wrapper.html" title="a simple implementation of type by wrapping clang qualified type" alt="" coords="5,93,145,133"/>
-</map>
