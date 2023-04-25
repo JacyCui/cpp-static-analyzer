@@ -1,0 +1,4 @@
+<map id="analyzer::ir::IRBuilder" name="analyzer::ir::IRBuilder">
+<area shape="rect" id="node1" title="Interface for builder of IR." alt="" coords="27,5,175,31"/>
+<area shape="rect" id="node2" href="$classanalyzer_1_1ir_1_1_default_i_r_builder.html" title="build a default IR for a cpp method with the help of clang" alt="" coords="5,79,196,104"/>
+</map>

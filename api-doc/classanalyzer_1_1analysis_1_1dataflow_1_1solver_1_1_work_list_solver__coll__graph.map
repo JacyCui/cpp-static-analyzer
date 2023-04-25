@@ -1,0 +1,5 @@
+<map id="analyzer::analysis::dataflow::solver::WorkListSolver&lt; Fact &gt;" name="analyzer::analysis::dataflow::solver::WorkListSolver&lt; Fact &gt;">
+<area shape="rect" id="node1" title="a Work&#45;list solver" alt="" coords="5,211,165,265"/>
+<area shape="rect" id="node2" href="$classanalyzer_1_1analysis_1_1dataflow_1_1solver_1_1_abstract_solver.html" title="provides common functionalities for Solver" alt="" coords="6,108,165,163"/>
+<area shape="rect" id="node3" href="$classanalyzer_1_1analysis_1_1dataflow_1_1solver_1_1_solver.html" title="Interface of data&#45;flow analysis solver." alt="" coords="20,5,151,60"/>
+</map>

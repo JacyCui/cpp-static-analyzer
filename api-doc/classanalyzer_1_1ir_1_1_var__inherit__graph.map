@@ -1,0 +1,4 @@
+<map id="analyzer::ir::Var" name="analyzer::ir::Var">
+<area shape="rect" id="node1" title="Representation of method/constructor parameters and local variables." alt="" coords="46,5,159,31"/>
+<area shape="rect" id="node2" href="$classanalyzer_1_1ir_1_1_clang_var_wrapper.html" title="a implementation of Var by wrapping the clang VarDecl*" alt="" coords="5,79,200,104"/>
+</map>

@@ -1,0 +1,4 @@
+<map id="analyzer::ir::NopStmt" name="analyzer::ir::NopStmt">
+<area shape="rect" id="node1" title="A default implementation for an empty statement." alt="" coords="5,79,152,104"/>
+<area shape="rect" id="node2" href="$classanalyzer_1_1ir_1_1_stmt.html" title="Representation of statements." alt="" coords="17,5,140,31"/>
+</map>

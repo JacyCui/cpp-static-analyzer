@@ -1,0 +1,4 @@
+<map id="analyzer::ir::ClangStmtWrapper" name="analyzer::ir::ClangStmtWrapper">
+<area shape="rect" id="node1" title="a implementation of Stmt by wrapping the clang Stmt*" alt="" coords="5,79,209,104"/>
+<area shape="rect" id="node2" href="$classanalyzer_1_1ir_1_1_stmt.html" title="Representation of statements." alt="" coords="46,5,169,31"/>
+</map>

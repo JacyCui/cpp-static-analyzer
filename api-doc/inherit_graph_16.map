@@ -1,0 +1,4 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="node1" href="$classanalyzer_1_1language_1_1_type.html" title="Represents the type." alt="" coords="5,5,136,45"/>
+<area shape="rect" id="node2" href="$classanalyzer_1_1language_1_1_clang_type_wrapper.html" title="a simple implementation of type by wrapping clang qualified type" alt="" coords="184,5,324,45"/>
+</map>
