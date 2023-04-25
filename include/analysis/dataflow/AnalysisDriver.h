@@ -26,12 +26,16 @@ namespace analyzer::analysis::dataflow {
         {
             World::getLogger().Progress("Start dataflow analysis: " + this->analysisConfig->getDescription());
             std::shared_ptr<graph::CFG> cfg = myIR->getCFG();
+
             World::getLogger().Info("Getting dataflow analysis algorithm ...");
             std::unique_ptr<DataflowAnalysis<Fact>> dataflowAnalysis = makeAnalysis(cfg);
+
             World::getLogger().Info("Getting dataflow analysis solver (worklist solver by default) ...");
             std::unique_ptr<solver::Solver<Fact>> mySolver = solver::makeSolver<Fact>();
+
             World::getLogger().Info("Solving the dataflow analysis ...");
             std::shared_ptr<fact::DataflowResult<Fact>> result = mySolver->solve(dataflowAnalysis);
+
             World::getLogger().Success("Finish dataflow analysis: " + this->analysisConfig->getDescription());
             return result;
         }

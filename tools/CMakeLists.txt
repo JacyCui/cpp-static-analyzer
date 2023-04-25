@@ -1,1 +1,1 @@
-add_subdirectory(analyzer)
+add_subdirectory(reaching-definition-analyzer)

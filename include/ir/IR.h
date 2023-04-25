@@ -89,11 +89,11 @@ namespace analyzer::ir {
 
         const lang::CPPMethod& method; ///< the method this ir is representing
 
-        const std::vector<std::shared_ptr<Var>> params; ///< the parameter variables in this ir
+        std::vector<std::shared_ptr<Var>> params; ///< the parameter variables in this ir
 
-        const std::vector<std::shared_ptr<Var>> vars; ///< the variables concerned in this ir
+        std::vector<std::shared_ptr<Var>> vars; ///< the variables concerned in this ir
 
-        const std::vector<std::shared_ptr<Stmt>> stmts; ///< the statements of this ir
+        std::vector<std::shared_ptr<Stmt>> stmts; ///< the statements of this ir
 
         std::shared_ptr<graph::CFG> cfg; ///< the cfg derived from this ir
 

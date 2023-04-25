@@ -1,4 +1,5 @@
 #include <utility>
+#include <algorithm>
 
 #include "ir/IR.h"
 #include "language/CPPMethod.h"
@@ -13,7 +14,10 @@ namespace analyzer::ir {
             :method(method), params(std::move(params)), vars(std::move(vars)),
                 stmts(std::move(stmts)), cfg(cfg)
     {
-
+        std::sort(this->stmts.begin(), this->stmts.end(),
+            [](const std::shared_ptr<Stmt>& s1, const std::shared_ptr<Stmt>& s2) -> bool {
+            return s1->getStartLine() < s2->getStartLine();
+        });
     }
 
     const lang::CPPMethod& DefaultIR::getMethod() const

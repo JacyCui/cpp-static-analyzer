@@ -98,7 +98,7 @@ namespace analyzer {
         [[nodiscard]] const std::unordered_map<std::string, std::shared_ptr<lang::CPPMethod>>& getAllMethods() const;
 
         /**
-         * get the cpp method by it's method
+         * @brief get the cpp method by it's method
          * @param signature signature string (e.g. int add(int, int))
          * @return a cpp method, nullptr if it doesn't exist
          */
@@ -126,7 +126,6 @@ namespace analyzer {
 
         /**
          * @return the global statement builder of this world
-         * @return
          */
         [[nodiscard]] const std::unique_ptr<ir::StmtBuilder>& getStmtBuilder() const;
 
