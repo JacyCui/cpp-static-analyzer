@@ -42,13 +42,20 @@ namespace analyzer::analysis::dataflow::solver {
         [[nodiscard]] std::shared_ptr<fact::DataflowResult<Fact>>
             solve(const std::unique_ptr<DataflowAnalysis<Fact>>& dataflowAnalysis) const override
         {
+            World::getLogger().Info("Initializing dataflow facts ...");
             std::shared_ptr<fact::DataflowResult<Fact>> result = initialize(dataflowAnalysis);
+            World::getLogger().Info("Doing the solving ...");
             doSolve(dataflowAnalysis, result);
             return result;
         }
 
     protected:
 
+        /**
+         * @brief initialize the data facts for a forward analysis
+         * @param dataflowAnalysis the corresponding dataflow analysis
+         * @param result the result to be initialized
+         */
         virtual void initializeForward(
                 const std::unique_ptr<DataflowAnalysis<Fact>>& dataflowAnalysis,
                 std::shared_ptr<fact::DataflowResult<Fact>> result) const
@@ -66,6 +73,11 @@ namespace analyzer::analysis::dataflow::solver {
             result->setOutFact(exit, dataflowAnalysis->newInitialFact());
         }
 
+        /**
+         * @brief initialize the data facts for a backward analysis
+         * @param dataflowAnalysis the corresponding dataflow analysis
+         * @param result the result to be initialized
+         */
         virtual void initializeBackward(
                 const std::unique_ptr<DataflowAnalysis<Fact>>& dataflowAnalysis,
                 std::shared_ptr<fact::DataflowResult<Fact>> result) const
@@ -83,10 +95,20 @@ namespace analyzer::analysis::dataflow::solver {
             result->setOutFact(entry, dataflowAnalysis->newInitialFact());
         }
 
+        /**
+         * @brief solve a forward dataflow analysis
+         * @param dataflowAnalysis the dataflow analysis to be solved
+         * @param result where to store the results
+         */
         virtual void doSolveForward(
                 const std::unique_ptr<DataflowAnalysis<Fact>>& dataflowAnalysis,
                 std::shared_ptr<fact::DataflowResult<Fact>> result) const = 0;
 
+        /**
+         * @brief solve a backward dataflow analysis
+         * @param dataflowAnalysis the dataflow analysis to be solved
+         * @param result where to store the results
+         */
         virtual void doSolveBackward(
                 const std::unique_ptr<DataflowAnalysis<Fact>>& dataflowAnalysis,
                 std::shared_ptr<fact::DataflowResult<Fact>> result) const = 0;
@@ -100,9 +122,9 @@ namespace analyzer::analysis::dataflow::solver {
             std::shared_ptr<fact::DataflowResult<Fact>> result =
                     std::make_shared<fact::DataflowResult<Fact>>();
             if (dataflowAnalysis->isForward()) {
-                initializeForward(dataflowAnalysis, result);
+                this->initializeForward(dataflowAnalysis, result);
             } else {
-                initializeBackward(dataflowAnalysis, result);
+                this->initializeBackward(dataflowAnalysis, result);
             }
             return result;
         }
@@ -111,9 +133,9 @@ namespace analyzer::analysis::dataflow::solver {
                      std::shared_ptr<fact::DataflowResult<Fact>> result) const
         {
             if (dataflowAnalysis->isForward()) {
-                doSolveForward(dataflowAnalysis, result);
+                this->doSolveForward(dataflowAnalysis, result);
             } else {
-                doSolveBackward(dataflowAnalysis, result);
+                this->doSolveBackward(dataflowAnalysis, result);
             }
         }
 

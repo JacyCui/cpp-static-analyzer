@@ -30,14 +30,19 @@ namespace analyzer::analysis::dataflow::fact {
 
         /**
          * @brief typically, all statements are relevant in NodeResult
-         * @param node an unused argument
+         * @param stmt an unused argument
          * @return true
          */
-        [[nodiscard]] bool isRelevant(std::shared_ptr<ir::Stmt> node) const override
+        [[nodiscard]] bool isRelevant(std::shared_ptr<ir::Stmt> stmt) const override
         {
             return true;
         }
 
+        /**
+         * @brief typically, the result of a statement is its out-flowing fact
+         * @param stmt the statement to get result
+         * @return the result of given stmt, which is also its out-flowing fact
+         */
         [[nodiscard]] std::shared_ptr<Fact> getResult(std::shared_ptr<ir::Stmt> stmt) const override
         {
             return getOutFact(stmt);

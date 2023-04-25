@@ -77,8 +77,14 @@ namespace analyzer::analysis::dataflow {
         [[nodiscard]] virtual std::shared_ptr<graph::CFG> getCFG() const = 0;
 
         virtual ~DataflowAnalysis() = default;
+
     };
 
+    /**
+     * @class AbstractDataflow Analysis
+     * @brief An abstract dataflow analysis that implements some general logic
+     * @tparam Fact dataflow fact type
+     */
     template <typename Fact>
     class AbstractDataflowAnalysis: public DataflowAnalysis<Fact> {
     public:
@@ -102,13 +108,17 @@ namespace analyzer::analysis::dataflow {
 
     protected:
 
+        /**
+         * @brief construct a dataflow analysis from a given cfg
+         * @param cfg the cfg to be analyzed
+         */
         explicit AbstractDataflowAnalysis(const std::shared_ptr<graph::CFG>& cfg)
             :cfg(cfg)
         {
 
         }
 
-        std::shared_ptr<graph::CFG> cfg;
+        std::shared_ptr<graph::CFG> cfg; ///< the cfg to be analyzed
 
     };
 

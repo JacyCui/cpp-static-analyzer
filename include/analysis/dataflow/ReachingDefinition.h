@@ -8,9 +8,17 @@
 
 namespace analyzer::analysis::dataflow {
 
+    /**
+     * @class ReachingDefinition
+     * @brief reaching definition analysis
+     */
     class ReachingDefinition: public AnalysisDriver<fact::SetFact<ir::Stmt>> {
     public:
 
+        /**
+         * @brief constructor for reaching definition analysis
+         * @param analysisConfig the analysis configuration
+         */
         explicit ReachingDefinition(std::unique_ptr<config::AnalysisConfig>& analysisConfig);
 
     protected:

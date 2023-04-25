@@ -68,9 +68,11 @@ namespace analyzer::analysis::dataflow::fact {
 
     private:
 
-        std::unordered_map<std::shared_ptr<ir::Stmt>, std::shared_ptr<Fact>> inFacts; ///< in-flowing facts of each statement
+        std::unordered_map<std::shared_ptr<ir::Stmt>, std::shared_ptr<Fact>>
+            inFacts; ///< in-flowing facts of each statement
 
-        std::unordered_map<std::shared_ptr<ir::Stmt>, std::shared_ptr<Fact>> outFacts; ///< out-flowing facts of each statement
+        std::unordered_map<std::shared_ptr<ir::Stmt>, std::shared_ptr<Fact>>
+            outFacts; ///< out-flowing facts of each statement
 
     };
 

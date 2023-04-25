@@ -191,7 +191,8 @@ namespace analyzer::analysis::dataflow::fact {
             return map;
         }
 
-        std::unordered_map<std::shared_ptr<K>, std::shared_ptr<V>> map; ///< The map holding the mappings of this MapFact.
+        std::unordered_map<std::shared_ptr<K>, std::shared_ptr<V>>
+            map; ///< The map holding the mappings of this MapFact.
 
     };
 

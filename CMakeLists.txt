@@ -20,6 +20,9 @@ add_definitions(${LLVM_DEFINITIONS_LIST})
 
 llvm_map_components_to_libnames(LLVM_LIBS support frontendopenmp)
 
+# define CLANG_LIBS: some clang libs to be used in link time
+# !!! DO NOT change the order of the libs !!!
+# libs will be linked in this order, and changing the order could lead to link errors
 set(CLANG_LIBS
         clangTooling
         clangFrontendTool

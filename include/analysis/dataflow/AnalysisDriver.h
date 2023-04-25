@@ -7,10 +7,20 @@
 
 namespace analyzer::analysis::dataflow {
 
+    /**
+     * @brief an abstract analysis driver for all dataflow analysis
+     * @class AnalysisDriver
+     * @tparam Fact the dataflow fact type
+     */
     template <typename Fact>
     class AnalysisDriver: public MethodAnalysis<fact::DataflowResult<Fact>> {
     public:
 
+        /**
+         * @brief analyze the given ir to get the dataflow result
+         * @param myIR the ir to be analyzed
+         * @return the dataflow result
+         */
         [[nodiscard]] std::shared_ptr<fact::DataflowResult<Fact>>
         analyze(std::shared_ptr<ir::IR> myIR) override
         {
@@ -36,6 +46,10 @@ namespace analyzer::analysis::dataflow {
         virtual std::unique_ptr<DataflowAnalysis<Fact>>
             makeAnalysis(const std::shared_ptr<graph::CFG>& cfg) const = 0;
 
+        /**
+         * @brief Construct an analysis driver from analysis config
+         * @param analysisConfig the configuration of this analysis
+         */
         explicit AnalysisDriver(std::unique_ptr<config::AnalysisConfig>& analysisConfig)
             :MethodAnalysis<fact::DataflowResult<Fact>>(analysisConfig)
         {
