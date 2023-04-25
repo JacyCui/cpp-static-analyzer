@@ -107,3 +107,45 @@ assertions are passed.
 [doctest] Status: SUCCESS!
 ```
 
+## Get the API Documentation
+
+An online doxygen api documentation can be found [here](https://jacycui.github.io/cpp-static-analyzer/).
+You can also build a local version of it **in the build directory**.
+Run
+
+```shell
+# in the build directory
+ninja libanalyzer-api-doc
+```
+
+And you'll find your html documentation in the `build/docs/api-doc/html` directory.
+
+## How to use it as a library in your project
+
+**Step01**: Take this repository as a submodule of your project repository.
+
+```shell
+git submodule add https://github.com/JacyCui/cpp-static-analyzer.git path/to/put/this/project
+```
+
+**Step02**: Link to `libanalyzer` in you `CMakeLists.txt`.
+
+```cmake
+# suppose your target is called your_target
+
+add_subdirectory(path/to/put/this/project)
+
+target_include_directories(your_target
+        PUBLIC path/to/put/this/project/include
+        )
+
+target_link_libraries(your_target
+        libanalyzer
+        )
+```
+
+**Step03**: Use APIs provided [here](https://jacycui.github.io/cpp-static-analyzer/) in your source code.
+An example usage is provided in the [test of reaching definition](tests/TestReachingDefinition.cpp).
+
+
+
