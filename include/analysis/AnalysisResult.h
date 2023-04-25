@@ -6,7 +6,8 @@
 namespace analyzer::analysis {
 
     /**
-     * @class An interface for querying analysis results of Stmt.
+     * @class StmtResult
+     * @brief An interface for querying analysis results of Stmt.
      * @tparam R type of analysis results
      */
     template <typename R>

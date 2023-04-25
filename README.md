@@ -1,4 +1,4 @@
-# A Simple CPP Static Analyzer
+# A Simple CPP Static Analysis Framework
 
 > Copyright (C) 2022 Jiacai Cui <201220014@smail.nju.edu.cn>
 
@@ -36,7 +36,7 @@ project.
 Use [homebrew](https://brew.sh/) as the package manager, run 
 
 ```shell
-brew install cmake ninja llvm
+brew install cmake ninja llvm doxygen
 ```
 
 Then, check your installed version of cmake, ninja, llvm, and clang by
@@ -46,6 +46,7 @@ cmake --version
 ninja --version
 llvm-config --version
 clang --version
+doxygen --version
 ```
 
 ### On Ubuntu 22.04
@@ -54,7 +55,7 @@ Using [llvm apt source](https://apt.llvm.org/), run
 
 ```shell
 sudo apt update 
-sudo apt install lsb-release wget software-properties-common gnupg zlib1g zlib1g-dev git cmake ninja-build build-essential
+sudo apt install lsb-release wget software-properties-common gnupg zlib1g zlib1g-dev git cmake ninja-build build-essential doxygen
 wget https://apt.llvm.org/llvm.sh
 chmod +x llvm.sh
 ./llvm.sh 17 all
@@ -67,6 +68,7 @@ cmake --version
 ninja --version
 clang-17 --version
 llvm-config-17 --version
+doxygen --version
 ```
 
 ## Get the Project

@@ -1,7 +1,11 @@
 cmake_minimum_required(VERSION 3.14)
 
-project(static-analyzer)
-set(CMAKE_CXX_STANDARD 17)
+project(cpp-static-analyzer
+        VERSION 1.0.0
+        DESCRIPTION "This is a simple cpp static analysis framework."
+        )
+
+set(CMAKE_CXX_STANDARD 17) # the standard used in this project and llvm
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti") # add for those build llvm without rtti
 
 find_package(LLVM REQUIRED CONFIG)
@@ -50,7 +54,7 @@ include_directories(include)
 add_subdirectory(lib)
 add_subdirectory(tools)
 
-
 enable_testing()
 add_subdirectory(tests)
 
+add_subdirectory(docs)

@@ -81,7 +81,7 @@ namespace analyzer::analysis::dataflow {
     };
 
     /**
-     * @class AbstractDataflow Analysis
+     * @class AbstractDataflowAnalysis
      * @brief An abstract dataflow analysis that implements some general logic
      * @tparam Fact dataflow fact type
      */
