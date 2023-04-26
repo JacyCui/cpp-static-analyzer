@@ -128,7 +128,7 @@ USAGE: reaching-definition-analyzer [options]
 
 ## How to use it as a library in your project
 
-### Steps
+### Linking Steps
 
 **Step01**: Take this repository as a submodule of your project repository.
 
