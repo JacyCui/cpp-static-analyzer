@@ -158,16 +158,18 @@ An example usage is provided in the [test of reaching definition](tests/TestReac
 
 ### Get the API Documentation
 
-An online doxygen api documentation can be found [here](https://jacycui.github.io/cpp-static-analyzer/).
-You can also build a local version of it **in the build directory**.
-Run
+You can build the html doxygen api documentation locally
+**in the build directory** by running
 
 ```shell
 # in the build directory
 ninja libanalyzer-api-doc
 ```
 
-And you'll find your html documentation in the `build/docs/api-doc/html` directory.
+And you'll find your html documentation located at `build/docs/api-doc/html` directory.
 
+You can read it by opening `build/docs/api-doc/html/index.html` in your local web browser.
 
+Note that the documentation is not included in the default build target. You must
+build it explicitly like above if you need to read it.
 
