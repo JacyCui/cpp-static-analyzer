@@ -1,7 +1,5 @@
 #include "doctest.h"
 
-#include <string>
-
 #include "World.h"
 #include "analysis/dataflow/fact/SetFact.h"
 #include "analysis/dataflow/fact/MapFact.h"
