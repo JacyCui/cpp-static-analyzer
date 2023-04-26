@@ -107,20 +107,28 @@ assertions are passed.
 [doctest] Status: SUCCESS!
 ```
 
-## Get the API Documentation
+### Run the Example Reaching Definition Analysis
 
-An online doxygen api documentation can be found [here](https://jacycui.github.io/cpp-static-analyzer/).
-You can also build a local version of it **in the build directory**.
-Run
+After compiling, **in the project root directory**, run
 
 ```shell
-# in the build directory
-ninja libanalyzer-api-doc
+ ./build/tools/reaching-definition-analyzer/reaching-definition-analyzer --source-dir=resources/dataflow/ReachDef
 ```
 
-And you'll find your html documentation in the `build/docs/api-doc/html` directory.
+This will run the reaching definition analysis 
+for all source files in the `resources/dataflow/ReachDef` directory.
+
+```shell
+USAGE: reaching-definition-analyzer [options]
+--include-dir=<directory>       - directory of all header files
+--source-dir=<directory>        - directory of all source files
+--standard=<standard>           - c++ language standard
+--help                          - Display available options
+```
 
 ## How to use it as a library in your project
+
+### Steps
 
 **Step01**: Take this repository as a submodule of your project repository.
 
@@ -146,6 +154,20 @@ target_link_libraries(your_target
 
 **Step03**: Use APIs provided [here](https://jacycui.github.io/cpp-static-analyzer/) in your source code.
 An example usage is provided in the [test of reaching definition](tests/TestReachingDefinition.cpp).
+
+
+### Get the API Documentation
+
+An online doxygen api documentation can be found [here](https://jacycui.github.io/cpp-static-analyzer/).
+You can also build a local version of it **in the build directory**.
+Run
+
+```shell
+# in the build directory
+ninja libanalyzer-api-doc
+```
+
+And you'll find your html documentation in the `build/docs/api-doc/html` directory.
 
 
 
