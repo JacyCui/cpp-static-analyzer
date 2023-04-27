@@ -55,7 +55,7 @@ Using [llvm apt source](https://apt.llvm.org/), run
 
 ```shell
 sudo apt update 
-sudo apt install lsb-release wget software-properties-common gnupg zlib1g zlib1g-dev git cmake ninja-build build-essential doxygen
+sudo apt install lsb-release wget software-properties-common gnupg zlib1g zlib1g-dev git cmake ninja-build build-essential doxygen graphviz
 wget https://apt.llvm.org/llvm.sh
 chmod +x llvm.sh
 ./llvm.sh 17 all
@@ -112,7 +112,7 @@ assertions are passed.
 After compiling, **in the project root directory**, run
 
 ```shell
- ./build/tools/reaching-definition-analyzer/reaching-definition-analyzer --source-dir=resources/dataflow/ReachDef
+./build/tools/reaching-definition-analyzer/reaching-definition-analyzer --source-dir=resources/dataflow/ReachDef
 ```
 
 This will run the reaching definition analysis 
