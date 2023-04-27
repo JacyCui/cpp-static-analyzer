@@ -13,7 +13,7 @@ namespace dfact = al::analysis::dataflow::fact;
 
 int main(int argc, const char **argv) {
 
-    CLI::App app("A Simple CPP Reaching Definition Static Analyzer\nCopyright (c) 2022-2022");
+    CLI::App app("A Simple CPP Reaching Definition Static Analyzer\nCopyright (c) 2023-2023");
 
     std::string sourceDir, includeDir, std;
 
