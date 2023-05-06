@@ -168,9 +168,12 @@ namespace analyzer {
          */
         void buildMethodMap();
 
+    public:
+
         World(const World&) = delete;
 
         World& operator=(const World&) = delete;
+
     };
 
     /**
@@ -178,7 +181,7 @@ namespace analyzer {
      * @param sourceDir the directory containing all the source files
      * @return a map from filename(relative, end with .c / .cpp / .cxx / .cc) to its contents
      */
-    std::unordered_map<std::string, std::string> loadSourceCodes(const std::string& sourceDir);
+    [[nodiscard]] std::unordered_map<std::string, std::string> loadSourceCodes(const std::string& sourceDir);
 
     namespace language {
 
@@ -187,7 +190,7 @@ namespace analyzer {
          * @param functionDecl function declaration ast
          * @return a string representation of signature
          */
-        std::string generateFunctionSignature(const clang::FunctionDecl* functionDecl);
+        [[nodiscard]] std::string generateFunctionSignature(const clang::FunctionDecl* functionDecl);
 
     }
 
