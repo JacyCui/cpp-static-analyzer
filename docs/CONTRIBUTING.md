@@ -24,8 +24,13 @@ The commit type `<type>` can include the following:
 - `build` – changes that affect the build system or external dependencies
 - `revert` – reverts a previous commit
 
-The commit type should be all lowercase and limited to the above 11 types.
-`<description>` should be a brief description of the commit and
-should not exceed one line. If you have more to describe, put them in
+The commit type should be all lowercase and limited to the above 11 types. `<description>` should be a brief description of the commit and should not exceed one line. If you have more to describe, put them in
 the optional body.
 
+## Comment Convention
+
+Doxygen recognizable comments should be provided for each class and methods declared in the header files. 
+
+Method that overrides a base class method can just inherit comments in the base class.
+
+You can take `include/World.h` as an example. 
