@@ -76,83 +76,83 @@ class World {
 
 class TypeBuilder {
 	<<interface>>
-	+buildType(ClangQualType) Type
+	+buildType(ClangQualType)* Type
 }
 
 class IRBuilder {
 	<<interface>>
-	+buildIR(CPPMethod) IR
+	+buildIR(CPPMethod)* IR
 }
 
 class StmtBuilder {
 	<<interface>>
-	+buildStmt(CPPMethod, ClangStmt, Map~ClangVarDecl, Var~) Stmt
+	+buildStmt(CPPMethod, ClangStmt, Map~ClangVarDecl, Var~)* Stmt
 }
 
 class VarBuilder {
 	<<interface>>
-	+buildVar(CPPMethod, ClangVarDecl) Var
+	+buildVar(CPPMethod, ClangVarDecl)* Var
 }
 
-World *-- TypeBuilder
-World *-- IRBuilder
-World *-- StmtBuilder
-World *-- VarBuilder
+World o-- TypeBuilder
+World o-- IRBuilder
+World o-- StmtBuilder
+World o-- VarBuilder
 
 class Type {
 	<<interface>>
-	+getName(): String
+	+getName()*: String
 }
 
 class IR {
 	<<interface>>
-	+getMethod() CPPMethod
-	+getCFG() CFG
-	+getParams() List~Var~
-	+getVars() List~Var~
-	+getStmts() List~Stmt~
+	+getMethod()* CPPMethod
+	+getCFG()* CFG
+	+getParams()* List~Var~
+	+getVars()* List~Var~
+	+getStmts()* List~Stmt~
 }
 
 class Stmt {
 	<<inteface>>
-	+getStartLine() int
-	+getEndLine() int
-	+getStartColumn() int
-	+getEndColumn() int
-	+getMethod() CPPMethod
-	+getDefs() Set~Var~
-	+getUses() Set~Var~
-	+str() String
+	+getStartLine()* int
+	+getEndLine()* int
+	+getStartColumn()* int
+	+getEndColumn()* int
+	+getMethod()* CPPMethod
+	+getDefs()* Set~Var~
+	+getUses()* Set~Var~
+	+str()* String
 }
 
 class Var {
 	<<interface>>
-	+getMethod() CPPMethod
-	+getName() String
-	+getType() Type
+	+getMethod()* CPPMethod
+	+getName()* String
+	+getType()* Type
 }
 
 class CFG {
 	<<interface>>
-	+getEntry() Stmt
-	+getExit() Stmt
-	+hasEdge(Stmt source, Stmt target) bool
-	+getPredsOf(Stmt) Set~Stmt~
-	+getSuccsOf(Stmt) Set~Stmt~
-	+getInEdgesOf(Stmt) Set~CFGEdge~
-	+getOutEdgesOf(Stmt) Set~CFGEdge~
-	+getIR() IR
-	+getEdgeNum() int
+	+getEntry()* Stmt
+	+getExit()* Stmt
+	+hasEdge(Stmt source, Stmt target)* bool
+	+getPredsOf(Stmt)* Set~Stmt~
+	+getSuccsOf(Stmt)* Set~Stmt~
+	+getInEdgesOf(Stmt)* Set~CFGEdge~
+	+getOutEdgesOf(Stmt)* Set~CFGEdge~
+	+getIR()* IR
+	+getEdgeNum()* int
 }
 
 IRBuilder <.. StmtBuilder
 IRBuilder <.. VarBuilder
 IRBuilder <.. TypeBuilder
 
-TypeBuilder .. Type
-IRBuilder .. IR
-StmtBuilder .. Stmt
-VarBuilder .. Var
+TypeBuilder --> Type
+IRBuilder --> IR
+StmtBuilder --> Stmt
+VarBuilder --> Var
 IR <.. CFG
 ```
 
