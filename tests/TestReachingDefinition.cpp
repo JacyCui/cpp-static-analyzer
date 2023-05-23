@@ -39,6 +39,7 @@ TEST_CASE_FIXTURE(ReachDefTestFixture, "testDataflowPreparation"
 
     std::unordered_map<std::string, std::shared_ptr<air::Stmt>> stmtMap1;
     for (const std::shared_ptr<air::Stmt>& s : ir1->getStmts()) {
+        al::World::getLogger().Debug(s->str());
         stmtMap1.emplace(s->str(), s);
     }
     std::shared_ptr<air::Stmt> s11 = stmtMap1.at("int x;");
@@ -65,6 +66,7 @@ TEST_CASE_FIXTURE(ReachDefTestFixture, "testDataflowPreparation"
 
     std::unordered_map<std::string, std::shared_ptr<air::Stmt>> stmtMap2;
     for (const std::shared_ptr<air::Stmt>& s : ir2->getStmts()) {
+        al::World::getLogger().Debug(s->str());
         stmtMap2.emplace(s->str(), s);
     }
     std::shared_ptr<air::Stmt> s21 = stmtMap2.at("int c;");
@@ -93,14 +95,15 @@ TEST_CASE_FIXTURE(ReachDefTestFixture, "testDataflowPreparation"
 
 }
 
-TEST_CASE_FIXTURE(ReachDefTestFixture, "testDataflowCaseFoo"
-    * doctest::description("testing dataflow example foo with if-else")) {
+TEST_CASE_FIXTURE(ReachDefTestFixture, "testReachDefCaseFoo"
+    * doctest::description("testing reaching definition example foo with if-else")) {
 
-    al::World::getLogger().Progress("Testing dataflow example foo with if-else ...");
+    al::World::getLogger().Progress("Testing reaching definition example foo with if-else ...");
 
     std::shared_ptr<graph::CFG> cfg = ir1->getCFG();
     std::unordered_map<std::string, std::shared_ptr<air::Stmt>> stmtMap;
     for (const std::shared_ptr<air::Stmt>& s : ir1->getStmts()) {
+        al::World::getLogger().Debug(s->str());
         stmtMap.emplace(s->str(), s);
     }
 
@@ -112,11 +115,6 @@ TEST_CASE_FIXTURE(ReachDefTestFixture, "testDataflowCaseFoo"
     std::shared_ptr<air::Stmt> s6 = stmtMap.at("x = c");
     std::shared_ptr<air::Stmt> s7 = stmtMap.at("x");
     std::shared_ptr<air::Stmt> s8 = stmtMap.at("return x");
-
-    std::unique_ptr<cf::AnalysisConfig> analysisConfig
-            = std::make_unique<cf::DefaultAnalysisConfig>("reaching definition analysis");
-    std::unique_ptr<df::ReachingDefinition> rd =
-            std::make_unique<df::ReachingDefinition>(analysisConfig);
 
     std::shared_ptr<dfact::DataflowResult<dfact::SetFact<air::Stmt>>> result = rd->analyze(ir1);
 
@@ -158,18 +156,19 @@ TEST_CASE_FIXTURE(ReachDefTestFixture, "testDataflowCaseFoo"
         CHECK(result->getResult(s)->equalsTo(result->getOutFact(s)));
     }
 
-    al::World::getLogger().Progress("Finish testing dataflow example foo with if-else ...");
+    al::World::getLogger().Success("Finish testing reaching definition example foo with if-else ...");
 
 }
 
-TEST_CASE_FIXTURE(ReachDefTestFixture, "testDataflowCaseLoop"
-    * doctest::description("testing dataflow example loop with while")) {
+TEST_CASE_FIXTURE(ReachDefTestFixture, "testReachDefCaseLoop"
+    * doctest::description("testing reaching definition example loop with while")) {
 
-    al::World::getLogger().Progress("Testing dataflow example loop with while ...");
+    al::World::getLogger().Progress("Testing reaching definition example loop with while ...");
 
     std::shared_ptr<graph::CFG> cfg = ir2->getCFG();
     std::unordered_map<std::string, std::shared_ptr<air::Stmt>> stmtMap;
     for (const std::shared_ptr<air::Stmt>& s : ir2->getStmts()) {
+        al::World::getLogger().Debug(s->str());
         stmtMap.emplace(s->str(), s);
     }
 
@@ -221,7 +220,7 @@ TEST_CASE_FIXTURE(ReachDefTestFixture, "testDataflowCaseLoop"
         CHECK(result->getResult(s)->equalsTo(result->getOutFact(s)));
     }
 
-    al::World::getLogger().Progress("Finish testing dataflow example loop with while ...");
+    al::World::getLogger().Success("Finish testing reaching definition example loop with while ...");
 
 }
 

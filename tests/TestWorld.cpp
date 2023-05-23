@@ -8,7 +8,6 @@
 #include "language/CPPMethod.h"
 
 namespace al=analyzer;
-namespace lang=al::language;
 
 class WorldTestFixture {
 private:

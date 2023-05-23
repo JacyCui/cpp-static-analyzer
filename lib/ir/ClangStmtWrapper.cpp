@@ -40,9 +40,8 @@ namespace analyzer::ir {
                 if (vars.find(D) == vars.end()) {
                     vars.emplace(D, World::get().getVarBuilder()->buildVar(method, D));
                 }
-                std::shared_ptr<Var> var = vars.at(D);
                 if (D->hasInit()) {
-                    defs.emplace(var);
+                    defs.emplace(vars.at(D));
                 }
                 return true;
             }
@@ -76,6 +75,34 @@ namespace analyzer::ir {
                 }
                 if (defs.find(var) == defs.end()) {
                     defs.emplace(var);
+                }
+                return true;
+            }
+
+            bool VisitUnaryOperator(clang::UnaryOperator* S)
+            {
+                if (S->isIncrementDecrementOp()) {
+                    if (auto* declRef = clang::dyn_cast<clang::DeclRefExpr>(S->getSubExpr())) {
+                        if (auto* varDecl = clang::dyn_cast<clang::VarDecl>(declRef->getDecl())) {
+                            if (vars.find(varDecl) == vars.end()) {
+                                vars.emplace(varDecl, World::get().getVarBuilder()->buildVar(method, varDecl));
+                            }
+                            uses.emplace(vars.at(varDecl));
+                        }
+                    }
+                }
+                return true;
+            }
+
+            bool VisitCompoundAssignOperator(clang::CompoundAssignOperator *S)
+            {
+                if (auto* declRef = clang::dyn_cast<clang::DeclRefExpr>(S->getLHS())) {
+                    if (auto* varDecl = clang::dyn_cast<clang::VarDecl>(declRef->getDecl())) {
+                        if (vars.find(varDecl) == vars.end()) {
+                            vars.emplace(varDecl, World::get().getVarBuilder()->buildVar(method, varDecl));
+                        }
+                        uses.emplace(vars.at(varDecl));
+                    }
                 }
                 return true;
             }

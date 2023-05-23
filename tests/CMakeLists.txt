@@ -5,6 +5,7 @@ add_executable(tests
         TestIR.cpp
         TestDataflowFacts.cpp
         TestReachingDefinition.cpp
+        TestLiveVariable.cpp
         )
 
 target_link_libraries(tests

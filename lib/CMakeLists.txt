@@ -11,10 +11,12 @@ add_library(libanalyzer
         language/CPPMethod.cpp
         language/Type.cpp
         language/DefaultTypeBuilder.cpp
-        analysis/graph/DefaultCFG.cpp
         config/DefaultAnalysisConfig.cpp
+        analysis/Analysis.cpp
+        analysis/graph/DefaultCFG.cpp
         analysis/dataflow/ReachingDefinition.cpp
-        analysis/Analysis.cpp)
+        analysis/dataflow/LiveVariable.cpp
+        )
 
 target_link_libraries(libanalyzer
         ${LLVM_LIBS}
