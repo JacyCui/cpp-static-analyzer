@@ -26,6 +26,8 @@ public:
         rd = std::make_unique<df::ReachingDefinition>(analysisConfig);
 
         CHECK_FALSE(analysisConfig);
+        CHECK(ir1);
+        CHECK(ir2);
     }
 };
 
@@ -93,10 +95,10 @@ TEST_CASE_FIXTURE(ReachDefTestFixture, "testDataflowPreparation"
 
 }
 
-TEST_CASE_FIXTURE(ReachDefTestFixture, "testDataflowCaseFoo"
-    * doctest::description("testing dataflow example foo with if-else")) {
+TEST_CASE_FIXTURE(ReachDefTestFixture, "testReachDefCaseFoo"
+    * doctest::description("testing reaching definition example foo with if-else")) {
 
-    al::World::getLogger().Progress("Testing dataflow example foo with if-else ...");
+    al::World::getLogger().Progress("Testing reaching definition example foo with if-else ...");
 
     std::shared_ptr<graph::CFG> cfg = ir1->getCFG();
     std::unordered_map<std::string, std::shared_ptr<air::Stmt>> stmtMap;
@@ -158,14 +160,14 @@ TEST_CASE_FIXTURE(ReachDefTestFixture, "testDataflowCaseFoo"
         CHECK(result->getResult(s)->equalsTo(result->getOutFact(s)));
     }
 
-    al::World::getLogger().Progress("Finish testing dataflow example foo with if-else ...");
+    al::World::getLogger().Progress("Finish testing reaching definition example foo with if-else ...");
 
 }
 
-TEST_CASE_FIXTURE(ReachDefTestFixture, "testDataflowCaseLoop"
-    * doctest::description("testing dataflow example loop with while")) {
+TEST_CASE_FIXTURE(ReachDefTestFixture, "testReachDefCaseLoop"
+    * doctest::description("testing reaching definition example loop with while")) {
 
-    al::World::getLogger().Progress("Testing dataflow example loop with while ...");
+    al::World::getLogger().Progress("Testing reaching definition example loop with while ...");
 
     std::shared_ptr<graph::CFG> cfg = ir2->getCFG();
     std::unordered_map<std::string, std::shared_ptr<air::Stmt>> stmtMap;
@@ -221,7 +223,7 @@ TEST_CASE_FIXTURE(ReachDefTestFixture, "testDataflowCaseLoop"
         CHECK(result->getResult(s)->equalsTo(result->getOutFact(s)));
     }
 
-    al::World::getLogger().Progress("Finish testing dataflow example loop with while ...");
+    al::World::getLogger().Progress("Finish testing reaching definition example loop with while ...");
 
 }
 
