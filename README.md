@@ -96,14 +96,14 @@ After compiling, **in the project root directory**, run
 ./build/tests/tests
 ```
 
-And then, you should see something like below, which means the **411** 
+And then, you should see something like below, which means the **505** 
 assertions are passed.
 
 ```shell
 # a lot of log information here ...
 ===============================================================================
-[doctest] test cases:  19 |  19 passed | 0 failed | 0 skipped
-[doctest] assertions: 411 | 411 passed | 0 failed |
+[doctest] test cases:  23 |  23 passed | 0 failed | 0 skipped
+[doctest] assertions: 505 | 505 passed | 0 failed |
 [doctest] Status: SUCCESS!
 ```
 
