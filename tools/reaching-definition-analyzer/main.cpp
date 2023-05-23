@@ -1,4 +1,4 @@
-#include <llvm/Support/CommandLine.h>
+#include "CLI11.h"
 
 #include "World.h"
 #include "analysis/dataflow/ReachingDefinition.h"
@@ -10,28 +10,31 @@ namespace graph = al::analysis::graph;
 namespace df = al::analysis::dataflow;
 namespace dfact = al::analysis::dataflow::fact;
 
-static llvm::cl::opt<std::string> SourceDir("source-dir", llvm::cl::desc("directory of all source files"),
-                                            llvm::cl::value_desc("directory"), llvm::cl::Required);
-static llvm::cl::opt<std::string> IncludeDir("include-dir", llvm::cl::desc("directory of all header files"),
-                                        llvm::cl::value_desc("directory"), llvm::cl::Optional);
-static llvm::cl::opt<std::string> Std("standard", llvm::cl::desc("c++ language standard"),
-                                 llvm::cl::value_desc("standard"), llvm::cl::Optional);
 
 int main(int argc, const char **argv) {
 
-    llvm::cl::SetVersionPrinter([](llvm::raw_ostream &out) -> void {
-        llvm::outs() << "A Simple CPP Reaching Definition Static Analyzer\n";
-        llvm::outs() << "Copyright (c) 2022-2022";
-    });
+    CLI::App app("A Simple CPP Reaching Definition Static Analyzer\nCopyright (c) 2023-2023");
 
-    llvm::cl::ParseCommandLineOptions(argc, argv);
+    std::string sourceDir, includeDir, std;
 
-    if (IncludeDir.empty()) {
-        al::World::initialize(SourceDir);
-    } else if (Std.empty()) {
-        al::World::initialize(SourceDir, IncludeDir);
+    app.add_option("-S,--source-dir,", sourceDir,
+                   "directory of all source files")->required();
+
+    app.add_option("-I,--include-dir", includeDir,
+                   "directory of all header files");
+
+    app.add_option("--std,--standard", std,
+                   "c++ language standard (support all standards that clang supports)");
+
+    CLI11_PARSE(app, argc, argv);
+
+
+    if (includeDir.empty()) {
+        al::World::initialize(sourceDir);
+    } else if (std.empty()) {
+        al::World::initialize(sourceDir, includeDir);
     } else {
-        al::World::initialize(SourceDir, IncludeDir, Std);
+        al::World::initialize(sourceDir, includeDir, std);
     }
 
     std::unique_ptr<cf::AnalysisConfig> analysisConfig
@@ -68,6 +71,8 @@ int main(int argc, const char **argv) {
                     + " " + std::to_string(s->getStartLine()) + ": " + s->str());
             });
         }
+
+        al::World::getLogger().Info("-------------------------------------------------");
 
         al::World::getLogger().Success("Finish reaching definition analysis for: " + signature);
 

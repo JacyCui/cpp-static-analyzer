@@ -42,6 +42,16 @@ TEST_CASE_FIXTURE(IRTestFixture, "testGetParams"
     CHECK_EQ(params2.at(1)->getType()->getName(), "int");
     CHECK_EQ(params2.at(1)->getName(), "b");
 
+    std::vector<std::shared_ptr<air::Var>> params3 = ir3->getParams();
+    CHECK_EQ(params3.size(), 1);
+    CHECK_EQ(params3.at(0)->getType()->getName(), "int");
+    CHECK_EQ(params3.at(0)->getName(), "i");
+
+    std::vector<std::shared_ptr<air::Var>> params4 = ir4->getParams();
+    CHECK_EQ(params4.size(), 1);
+    CHECK_EQ(params4.at(0)->getType()->getName(), "int");
+    CHECK_EQ(params4.at(0)->getName(), "n");
+
     al::World::getLogger().Success("Finish testing get method ir parameters ...");
 
 }
@@ -67,6 +77,24 @@ TEST_CASE_FIXTURE(IRTestFixture, "testGetVars"
     }
     CHECK_EQ(output2, std::unordered_map<std::string, std::string>{
         {"a", "int"},  {"b", "int"}, {"c", "int"}, {"d", "int"}
+    });
+
+    std::vector<std::shared_ptr<air::Var>>&& vars3 = ir3->getVars();
+    std::unordered_map<std::string, std::string> output3;
+    for (const std::shared_ptr<air::Var>& v : vars3) {
+        output3.emplace(v->getName(), v->getType()->getName());
+    }
+    CHECK_EQ(output3, std::unordered_map<std::string, std::string>{
+            {"a", "int"},  {"b", "int"}, {"i", "int"}, {"tmp", "int"}
+    });
+
+    std::vector<std::shared_ptr<air::Var>>&& vars4 = ir4->getVars();
+    std::unordered_map<std::string, std::string> output4;
+    for (const std::shared_ptr<air::Var>& v : vars4) {
+        output4.emplace(v->getName(), v->getType()->getName());
+    }
+    CHECK_EQ(output4, std::unordered_map<std::string, std::string>{
+            {"i", "int"},  {"n", "int"}, {"result", "int"}
     });
 
     al::World::getLogger().Success("Finish testing get method variables ...");

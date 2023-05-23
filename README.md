@@ -119,11 +119,17 @@ This will run the reaching definition analysis
 for all source files in the `resources/dataflow/ReachDef` directory.
 
 ```shell
-USAGE: reaching-definition-analyzer [options]
---include-dir=<directory>       - directory of all header files
---source-dir=<directory>        - directory of all source files
---standard=<standard>           - c++ language standard
---help                          - Display available options
+./build/tools/reaching-definition-analyzer/reaching-definition-analyzer --help
+A Simple CPP Reaching Definition Static Analyzer
+Copyright (c) 2023-2023
+Usage: ./build/tools/reaching-definition-analyzer/reaching-definition-analyzer [OPTIONS]
+
+Options:
+  -h,--help                   Print this help message and exit
+  -S,--source-dir TEXT REQUIRED
+                              directory of all source files
+  -I,--include-dir TEXT       directory of all header files
+  --std,--standard TEXT       c++ language standard (support all standards that clang supports)
 ```
 
 ## How to use it as a library in your project
@@ -170,6 +176,7 @@ And you'll find your html documentation located at `build/docs/api-doc/html` dir
 
 You can read it by opening `build/docs/api-doc/html/index.html` in your local web browser.
 
-Note that the documentation is not included in the default build target. You must
-build it explicitly like above if you need to read it.
+Note that the documentation is not included in the default build target. 
+
+You must build it explicitly like above if you need to read it.
 
