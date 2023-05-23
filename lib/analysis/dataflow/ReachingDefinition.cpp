@@ -12,7 +12,7 @@ namespace analyzer::analysis::dataflow {
         ReachingDefinition::makeAnalysis(const std::shared_ptr<graph::CFG>& cfg) const
     {
 
-        class Analysis: public AbstractDataflowAnalysis<fact::SetFact<ir::Stmt>>{
+        class Analysis: public AbstractDataflowAnalysis<fact::SetFact<ir::Stmt>> {
         public:
 
             [[nodiscard]] bool isForward() const override
