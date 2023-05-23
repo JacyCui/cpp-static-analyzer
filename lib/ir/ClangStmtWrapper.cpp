@@ -79,10 +79,26 @@ namespace analyzer::ir {
                 return true;
             }
 
+            bool VisitUnaryOperator(clang::UnaryOperator* S)
+            {
+                if (S->isIncrementDecrementOp()) {
+                    if (auto *declRef = clang::dyn_cast<clang::DeclRefExpr>(S->getSubExpr())) {
+                        if (auto* varDecl = clang::dyn_cast<clang::VarDecl>(declRef->getDecl())) {
+                            if (vars.find(varDecl) == vars.end()) {
+                                vars.emplace(varDecl, World::get().getVarBuilder()->buildVar(method, varDecl));
+                            }
+                            uses.emplace(vars.at(varDecl));
+                        }
+                    }
+                }
+                return true;
+            }
+
         };
 
         StmtProcessor stmtProcessor(varPool, uses, defs, method);
         stmtProcessor.TraverseStmt(const_cast<clang::Stmt*>(clangStmt));
+
 
         const clang::SourceManager& sourceManager = method.getASTUnit()->getSourceManager();
 

@@ -102,7 +102,65 @@ TEST_CASE_FIXTURE(LiveVarTestFixture, "testLiveVarCaseLoop"
 
     al::World::getLogger().Progress("Testing live variable example loop ...");
 
+    std::shared_ptr<graph::CFG> cfg = ir2->getCFG();
+    std::unordered_map<std::string, std::shared_ptr<air::Stmt>> stmtMap;
+    for (const std::shared_ptr<air::Stmt>& s : ir2->getStmts()) {
+        al::World::getLogger().Debug(s->str());
+        stmtMap.emplace(s->str(), s);
+    }
+    std::unordered_map<std::string, std::shared_ptr<air::Var>> varMap;
+    CHECK_EQ(ir2->getVars().size(), 3);
+    for (const std::shared_ptr<air::Var>& v : ir2->getVars()) {
+        varMap.emplace(v->getName(), v);
+    }
 
+    std::shared_ptr<air::Stmt> s1 = stmtMap.at("int y = 0;");
+    std::shared_ptr<air::Stmt> s2 = stmtMap.at("int i = 0;");
+    std::shared_ptr<air::Stmt> s3 = stmtMap.at("i < x");
+    std::shared_ptr<air::Stmt> s4 = stmtMap.at("++i");
+    std::shared_ptr<air::Stmt> s5 = stmtMap.at("y += 20");
+    std::shared_ptr<air::Stmt> s6 = stmtMap.at("y");
+    std::shared_ptr<air::Stmt> s7 = stmtMap.at("return y");
+
+    std::shared_ptr<air::Var> v1 = varMap.at("y");
+    std::shared_ptr<air::Var> v2 = varMap.at("i");
+    std::shared_ptr<air::Var> v3 = varMap.at("x");
+
+    std::shared_ptr<dfact::DataflowResult<dfact::SetFact<air::Var>>> result = lv->analyze(ir2);
+
+    CHECK(result->getOutFact(cfg->getExit())->isEmpty());
+    CHECK(result->getInFact(cfg->getExit())->isEmpty());
+    CHECK(result->getOutFact(s7)->isEmpty());
+    CHECK(result->getInFact(s7)->equalsTo(
+            std::make_shared<dfact::SetFact<air::Var>>(std::unordered_set{v1})));
+    CHECK(result->getOutFact(s6)->equalsTo(
+            std::make_shared<dfact::SetFact<air::Var>>(std::unordered_set{v1})));
+    CHECK(result->getInFact(s6)->equalsTo(
+            std::make_shared<dfact::SetFact<air::Var>>(std::unordered_set{v1})));
+    CHECK(result->getOutFact(s5)->equalsTo(
+            std::make_shared<dfact::SetFact<air::Var>>(std::unordered_set{v1, v2, v3})));
+    CHECK(result->getInFact(s5)->equalsTo(
+            std::make_shared<dfact::SetFact<air::Var>>(std::unordered_set{v1, v2, v3})));
+    CHECK(result->getOutFact(s4)->equalsTo(
+            std::make_shared<dfact::SetFact<air::Var>>(std::unordered_set{v1, v2, v3})));
+    CHECK(result->getInFact(s4)->equalsTo(
+            std::make_shared<dfact::SetFact<air::Var>>(std::unordered_set{v1, v2, v3})));
+    CHECK(result->getOutFact(s3)->equalsTo(
+            std::make_shared<dfact::SetFact<air::Var>>(std::unordered_set{v1, v2, v3})));
+    CHECK(result->getInFact(s3)->equalsTo(
+            std::make_shared<dfact::SetFact<air::Var>>(std::unordered_set{v1, v2, v3})));
+    CHECK(result->getOutFact(s2)->equalsTo(
+            std::make_shared<dfact::SetFact<air::Var>>(std::unordered_set{v1, v2, v3})));
+    CHECK(result->getInFact(s2)->equalsTo(
+            std::make_shared<dfact::SetFact<air::Var>>(std::unordered_set{v1, v3})));
+    CHECK(result->getOutFact(s1)->equalsTo(
+            std::make_shared<dfact::SetFact<air::Var>>(std::unordered_set{v1, v3})));
+    CHECK(result->getInFact(s1)->equalsTo(
+            std::make_shared<dfact::SetFact<air::Var>>(std::unordered_set{v3})));
+    CHECK(result->getOutFact(cfg->getEntry())->equalsTo(
+            std::make_shared<dfact::SetFact<air::Var>>(std::unordered_set{v3})));
+    CHECK(result->getInFact(cfg->getEntry())->equalsTo(
+            std::make_shared<dfact::SetFact<air::Var>>(std::unordered_set{v3})));
 
     al::World::getLogger().Success("Finish testing live variable example loop ...");
 
@@ -113,6 +171,17 @@ TEST_CASE_FIXTURE(LiveVarTestFixture, "testLiveVarCaseLoopBranch"
 
     al::World::getLogger().Progress("Testing live variable example loopBranch ...");
 
+    std::shared_ptr<graph::CFG> cfg = ir3->getCFG();
+    std::unordered_map<std::string, std::shared_ptr<air::Stmt>> stmtMap;
+    for (const std::shared_ptr<air::Stmt>& s : ir3->getStmts()) {
+        al::World::getLogger().Debug(s->str());
+        stmtMap.emplace(s->str(), s);
+    }
+    std::unordered_map<std::string, std::shared_ptr<air::Var>> varMap;
+    CHECK_EQ(ir3->getVars().size(), 5);
+    for (const std::shared_ptr<air::Var>& v : ir3->getVars()) {
+        varMap.emplace(v->getName(), v);
+    }
 
 
     al::World::getLogger().Success("Finish testing live variable example loopBranch ...");
@@ -124,7 +193,17 @@ TEST_CASE_FIXTURE(LiveVarTestFixture, "testLiveVarCaseBranchLoop"
 
     al::World::getLogger().Progress("Testing live variable example branchLoop ...");
 
-
+    std::shared_ptr<graph::CFG> cfg = ir4->getCFG();
+    std::unordered_map<std::string, std::shared_ptr<air::Stmt>> stmtMap;
+    for (const std::shared_ptr<air::Stmt>& s : ir4->getStmts()) {
+        al::World::getLogger().Debug(s->str());
+        stmtMap.emplace(s->str(), s);
+    }
+    std::unordered_map<std::string, std::shared_ptr<air::Var>> varMap;
+    CHECK_EQ(ir4->getVars().size(), 5);
+    for (const std::shared_ptr<air::Var>& v : ir4->getVars()) {
+        varMap.emplace(v->getName(), v);
+    }
 
     al::World::getLogger().Success("Finish testing live variable example branchLoop ...");
 
