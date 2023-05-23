@@ -259,6 +259,91 @@ TEST_CASE_FIXTURE(LiveVarTestFixture, "testLiveVarCaseBranchLoop"
         varMap.emplace(v->getName(), v);
     }
 
+    std::shared_ptr<air::Stmt> s1 = stmtMap.at("x");
+    std::shared_ptr<air::Stmt> s2 = stmtMap.at("y");
+    std::shared_ptr<air::Stmt> s3 = stmtMap.at("z");
+    std::shared_ptr<air::Stmt> s4 = stmtMap.at("x = 1");
+    std::shared_ptr<air::Stmt> s5 = stmtMap.at("y = 2");
+    std::shared_ptr<air::Stmt> s6 = stmtMap.at("c > 0");
+    std::shared_ptr<air::Stmt> s7 = stmtMap.at("x = y + 1");
+    std::shared_ptr<air::Stmt> s8 = stmtMap.at("y = 2 * z");
+    std::shared_ptr<air::Stmt> s9 = stmtMap.at("d");
+    std::shared_ptr<air::Stmt> s10 = stmtMap.at("x = y + z");
+    std::shared_ptr<air::Stmt> s11 = stmtMap.at("z = 1");
+    std::shared_ptr<air::Stmt> s12 = stmtMap.at("c < 20");
+    std::shared_ptr<air::Stmt> s13 = stmtMap.at("nop");
+    std::shared_ptr<air::Stmt> s14 = stmtMap.at("z = x");
+
+    std::shared_ptr<air::Var> v1 = varMap.at("c");
+    std::shared_ptr<air::Var> v2 = varMap.at("d");
+    std::shared_ptr<air::Var> v3 = varMap.at("x");
+    std::shared_ptr<air::Var> v4 = varMap.at("y");
+    std::shared_ptr<air::Var> v5 = varMap.at("z");
+
+    std::shared_ptr<dfact::DataflowResult<dfact::SetFact<air::Var>>> result = lv->analyze(ir4);
+
+    CHECK(result->getOutFact(cfg->getExit())->isEmpty());
+    CHECK(result->getInFact(cfg->getExit())->isEmpty());
+    CHECK(result->getOutFact(s14)->isEmpty());
+    CHECK(result->getInFact(s14)->equalsTo(
+            std::make_shared<dfact::SetFact<air::Var>>(std::unordered_set{v3})));
+    CHECK(result->getOutFact(s13)->equalsTo(
+            std::make_shared<dfact::SetFact<air::Var>>(std::unordered_set{v1, v2, v4, v5})));
+    CHECK(result->getInFact(s13)->equalsTo(
+            std::make_shared<dfact::SetFact<air::Var>>(std::unordered_set{v1, v2, v4, v5})));
+    CHECK(result->getOutFact(s12)->equalsTo(
+            std::make_shared<dfact::SetFact<air::Var>>(std::unordered_set{v1, v2, v3, v4, v5})));
+    CHECK(result->getInFact(s12)->equalsTo(
+            std::make_shared<dfact::SetFact<air::Var>>(std::unordered_set{v1, v2, v3, v4, v5})));
+    CHECK(result->getOutFact(s11)->equalsTo(
+            std::make_shared<dfact::SetFact<air::Var>>(std::unordered_set{v1, v2, v3, v4, v5})));
+    CHECK(result->getInFact(s11)->equalsTo(
+            std::make_shared<dfact::SetFact<air::Var>>(std::unordered_set{v1, v2, v3, v4})));
+    CHECK(result->getOutFact(s10)->equalsTo(
+            std::make_shared<dfact::SetFact<air::Var>>(std::unordered_set{v1, v2, v3, v4})));
+    CHECK(result->getInFact(s10)->equalsTo(
+            std::make_shared<dfact::SetFact<air::Var>>(std::unordered_set{v1, v2, v4, v5})));
+    CHECK(result->getOutFact(s9)->equalsTo(
+            std::make_shared<dfact::SetFact<air::Var>>(std::unordered_set{v1, v2, v3, v4, v5})));
+    CHECK(result->getInFact(s9)->equalsTo(
+            std::make_shared<dfact::SetFact<air::Var>>(std::unordered_set{v1, v2, v3, v4, v5})));
+    CHECK(result->getOutFact(s8)->equalsTo(
+            std::make_shared<dfact::SetFact<air::Var>>(std::unordered_set{v1, v2, v3, v4, v5})));
+    CHECK(result->getInFact(s8)->equalsTo(
+            std::make_shared<dfact::SetFact<air::Var>>(std::unordered_set{v1, v2, v3, v5})));
+    CHECK(result->getOutFact(s7)->equalsTo(
+            std::make_shared<dfact::SetFact<air::Var>>(std::unordered_set{v1, v2, v3, v5})));
+    CHECK(result->getInFact(s7)->equalsTo(
+            std::make_shared<dfact::SetFact<air::Var>>(std::unordered_set{v1, v2, v4, v5})));
+    CHECK(result->getOutFact(s6)->equalsTo(
+            std::make_shared<dfact::SetFact<air::Var>>(std::unordered_set{v1, v2, v3, v4, v5})));
+    CHECK(result->getInFact(s6)->equalsTo(
+            std::make_shared<dfact::SetFact<air::Var>>(std::unordered_set{v1, v2, v3, v4, v5})));
+    CHECK(result->getOutFact(s5)->equalsTo(
+            std::make_shared<dfact::SetFact<air::Var>>(std::unordered_set{v1, v2, v3, v4, v5})));
+    CHECK(result->getInFact(s5)->equalsTo(
+            std::make_shared<dfact::SetFact<air::Var>>(std::unordered_set{v1, v2, v3, v5})));
+    CHECK(result->getOutFact(s4)->equalsTo(
+            std::make_shared<dfact::SetFact<air::Var>>(std::unordered_set{v1, v2, v3, v5})));
+    CHECK(result->getInFact(s4)->equalsTo(
+            std::make_shared<dfact::SetFact<air::Var>>(std::unordered_set{v1, v2, v5})));
+    CHECK(result->getOutFact(s3)->equalsTo(
+            std::make_shared<dfact::SetFact<air::Var>>(std::unordered_set{v1, v2, v5})));
+    CHECK(result->getInFact(s3)->equalsTo(
+            std::make_shared<dfact::SetFact<air::Var>>(std::unordered_set{v1, v2, v5})));
+    CHECK(result->getOutFact(s2)->equalsTo(
+            std::make_shared<dfact::SetFact<air::Var>>(std::unordered_set{v1, v2, v5})));
+    CHECK(result->getInFact(s2)->equalsTo(
+            std::make_shared<dfact::SetFact<air::Var>>(std::unordered_set{v1, v2, v5})));
+    CHECK(result->getOutFact(s1)->equalsTo(
+            std::make_shared<dfact::SetFact<air::Var>>(std::unordered_set{v1, v2, v5})));
+    CHECK(result->getInFact(s1)->equalsTo(
+            std::make_shared<dfact::SetFact<air::Var>>(std::unordered_set{v1, v2, v5})));
+    CHECK(result->getOutFact(cfg->getEntry())->equalsTo(
+            std::make_shared<dfact::SetFact<air::Var>>(std::unordered_set{v1, v2, v5})));
+    CHECK(result->getInFact(cfg->getEntry())->equalsTo(
+            std::make_shared<dfact::SetFact<air::Var>>(std::unordered_set{v1, v2, v5})));
+
     al::World::getLogger().Success("Finish testing live variable example branchLoop ...");
 
 }
