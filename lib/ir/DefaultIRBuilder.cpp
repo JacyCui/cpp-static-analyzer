@@ -68,16 +68,6 @@ namespace analyzer::ir {
                     std::shared_ptr<Stmt> s = World::get().
                             getStmtBuilder()->buildStmt(method, cfgStmt->getStmt(), varPool);
                     stmts.emplace(cfgStmt->getStmt(), s);
-                    for (const std::shared_ptr<Var>& v : s->getDefs()) {
-                        if (varPool.find(v->getClangVarDecl()) == varPool.end()) {
-                            varPool.emplace(v->getClangVarDecl(), v);
-                        }
-                    }
-                    for (const std::shared_ptr<Var>& v : s->getUses()) {
-                        if (varPool.find(v->getClangVarDecl()) == varPool.end()) {
-                            varPool.emplace(v->getClangVarDecl(), v);
-                        }
-                    }
                 }
             }
         }

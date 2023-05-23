@@ -37,10 +37,11 @@ namespace analyzer::ir {
 
             bool VisitVarDecl(clang::VarDecl* D)
             {
-                std::shared_ptr<Var> var = World::get().getVarBuilder()->buildVar(method, D);
-                vars.emplace(D, var);
+                if (vars.find(D) == vars.end()) {
+                    vars.emplace(D, World::get().getVarBuilder()->buildVar(method, D));
+                }
                 if (D->hasInit()) {
-                    defs.emplace(var);
+                    defs.emplace(vars.at(D));
                 }
                 return true;
             }
