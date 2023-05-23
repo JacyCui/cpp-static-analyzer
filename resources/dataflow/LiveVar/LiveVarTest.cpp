@@ -22,8 +22,8 @@ class LiveVar {
     }
 
     int loopBranch(int m, int n, int k) {
-        int a, i;
-        for (i = m - 1; i < k; i++) {
+        int a;
+        for (int i = m - 1; i < k; i++) {
             if (i >= n) {
                 a = n;
             }
