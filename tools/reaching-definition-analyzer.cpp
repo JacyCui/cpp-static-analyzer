@@ -10,8 +10,8 @@ namespace graph = al::analysis::graph;
 namespace df = al::analysis::dataflow;
 namespace dfact = al::analysis::dataflow::fact;
 
-
-int main(int argc, const char **argv) {
+int main(int argc, const char **argv)
+{
 
     CLI::App app("A Simple CPP Reaching Definition Static Analyzer\nCopyright (c) 2023-2023");
 
@@ -28,8 +28,7 @@ int main(int argc, const char **argv) {
 
     CLI11_PARSE(app, argc, argv);
 
-
-    if (includeDir.empty()) {
+    if (includeDir.empty() && std.empty()) {
         al::World::initialize(sourceDir);
     } else if (std.empty()) {
         al::World::initialize(sourceDir, includeDir);
@@ -79,5 +78,6 @@ int main(int argc, const char **argv) {
     }
 
     return 0;
+
 }
 
