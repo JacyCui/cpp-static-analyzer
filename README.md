@@ -107,22 +107,45 @@ assertions are passed.
 [doctest] Status: SUCCESS!
 ```
 
-### Run the Example Reaching Definition Analysis
+### Run the Example Dataflow Analysis
 
 After compiling, **in the project root directory**, run
 
 ```shell
-./build/tools/reaching-definition-analyzer/reaching-definition-analyzer --source-dir=resources/dataflow/ReachDef
+./build/tools/reaching-definition-analyzer --source-dir=resources/dataflow/ReachDef
 ```
 
 This will run the reaching definition analysis 
 for all source files in the `resources/dataflow/ReachDef` directory.
 
 ```shell
-./build/tools/reaching-definition-analyzer/reaching-definition-analyzer --help
+./build/tools/reaching-definition-analyzer --help
 A Simple CPP Reaching Definition Static Analyzer
 Copyright (c) 2023-2023
 Usage: ./build/tools/reaching-definition-analyzer/reaching-definition-analyzer [OPTIONS]
+
+Options:
+  -h,--help                   Print this help message and exit
+  -S,--source-dir TEXT REQUIRED
+                              directory of all source files
+  -I,--include-dir TEXT       directory of all header files
+  --std,--standard TEXT       c++ language standard (support all standards that clang supports)
+```
+
+Similarly, **in the project root directory**, run
+
+```shell
+./build/tools/live-variable-analyzer --source-dir=resources/dataflow/LiveVar
+```
+
+This will run the live variable analysis
+for all source files in the `resources/dataflow/LiveVar` directory.
+
+```shell
+./build/tools/live-variable-analyzer --help
+A Simple CPP Live Variable Static Analyzer
+Copyright (c) 2023-2023
+Usage: ./build/tools/live-variable-analyzer [OPTIONS]
 
 Options:
   -h,--help                   Print this help message and exit
