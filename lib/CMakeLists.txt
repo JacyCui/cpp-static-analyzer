@@ -16,6 +16,7 @@ add_library(libanalyzer
         analysis/graph/DefaultCFG.cpp
         analysis/dataflow/ReachingDefinition.cpp
         analysis/dataflow/LiveVariable.cpp
+        analysis/dataflow/ConstantPropagation.cpp
         )
 
 target_link_libraries(libanalyzer
