@@ -19,7 +19,7 @@ namespace analyzer::analysis::dataflow::fact {
      * @tparam V value type
      */
     template <typename K, typename V>
-    class MapFact final: public util::Copyable<MapFact<K, V>> {
+    class MapFact : public util::Copyable<MapFact<K, V>> {
     public:
 
         /**
