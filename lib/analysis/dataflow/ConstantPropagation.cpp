@@ -5,9 +5,47 @@ namespace analyzer::analysis::dataflow {
     //// ============== CPValue ============== ////
 
     std::shared_ptr<CPValue> CPValue::Undef = std::make_shared<CPValue>(Kind::UNDEF);
+
     std::shared_ptr<CPValue> CPValue::NAC = std::make_shared<CPValue>(Kind::NAC);
 
-    [[nodiscard]] const llvm::APSInt& CPValue::getConstantValue() const {
+    CPValue::CPValue(Kind kind, llvm::APSInt constantValue)
+        : kind(kind), constantValue(std::move(constantValue))
+    {
+
+    }
+
+    bool CPValue::isUndef() const
+    {
+        return kind == Kind::UNDEF;
+    }
+
+    bool CPValue::isNAC() const
+    {
+        return kind == Kind::NAC;
+    }
+
+    bool CPValue::isConstant() const
+    {
+        return kind == Kind::CONSTANT;
+    }
+
+    std::shared_ptr<CPValue> CPValue::getUndef()
+    {
+        return Undef;
+    }
+
+    std::shared_ptr<CPValue> CPValue::getNAC()
+    {
+        return NAC;
+    }
+
+    std::shared_ptr<CPValue> CPValue::makeConstant(const llvm::APSInt &constantValue)
+    {
+        return std::make_shared<CPValue>(Kind::CONSTANT, constantValue);
+    }
+
+    const llvm::APSInt& CPValue::getConstantValue() const
+    {
         if (!isConstant()) {
             throw std::runtime_error("CPValue is not a constant");
         }
@@ -16,19 +54,21 @@ namespace analyzer::analysis::dataflow {
 
     //// ============== CPFact ============== ////
 
-    [[nodiscard]] std::shared_ptr<CPValue> CPFact::get(const std::shared_ptr<ir::Var>& var) const {
-        std::shared_ptr<CPValue> value = fact::MapFact<ir::Var, CPValue>::get(var);
-        if (value == nullptr) {
-            return CPValue::getUndef();
+    std::shared_ptr<CPValue> CPFact::get(const std::shared_ptr<ir::Var>& key) const
+    {
+        std::shared_ptr<CPValue> value = fact::MapFact<ir::Var, CPValue>::get(key);
+        if (value) {
+            return value;
         }
-        return value;
+        return CPValue::getUndef();
     }
 
-    bool CPFact::update(const std::shared_ptr<ir::Var>& var, const std::shared_ptr<CPValue>& value) {
+    bool CPFact::update(const std::shared_ptr<ir::Var>& key, const std::shared_ptr<CPValue>& value)
+    {
         if (value->isUndef()) {
-            return remove(var) != nullptr;
+            return remove(key) != nullptr;
         } else {
-            return fact::MapFact<ir::Var, CPValue>::update(var, value);
+            return fact::MapFact<ir::Var, CPValue>::update(key, value);
         }
     }
 
@@ -165,21 +205,23 @@ namespace analyzer::analysis::dataflow {
             {
                 if (!expr->getType()->isIntegerType()) {
                     return CPValue::getNAC();
-                } else if (auto* intLiteral = llvm::dyn_cast<clang::IntegerLiteral>(expr)) {
+                }
+                if (auto* intLiteral = llvm::dyn_cast<clang::IntegerLiteral>(expr)) {
                     bool isUnsigned = !expr->getType()->isSignedIntegerType();
                     return CPValue::makeConstant(llvm::APSInt(intLiteral->getValue(), isUnsigned));
-                } else if(auto* castExpr = llvm::dyn_cast<clang::CastExpr>(expr)) {
+                }
+                if(auto* castExpr = llvm::dyn_cast<clang::CastExpr>(expr)) {
                     clang::CastKind castKind = castExpr->getCastKind();
                     auto subExpr = castExpr->getSubExpr();
                     switch (castKind) {
                         case clang::CastKind::CK_LValueToRValue:
                             return calculateExprCPValue(subExpr, inFact);
                         case clang::CastKind::CK_IntegralCast: {
-                            auto subExprValue = calculateExprCPValue(subExpr, inFact);
+                            std::shared_ptr<CPValue> subExprValue = calculateExprCPValue(subExpr, inFact);
                             if (subExprValue->isConstant()) {
                                 return CPValue::makeConstant(llvm::APSInt(
                                     subExprValue->getConstantValue(),
-                                    expr->getType()->isSignedIntegerType()));
+                                    !expr->getType()->isSignedIntegerType()));
                             } else  {
                                 return subExprValue;
                             }
@@ -187,12 +229,14 @@ namespace analyzer::analysis::dataflow {
                         default:
                             return CPValue::getNAC();
                     }
-                } else if (auto* declRef = llvm::dyn_cast<clang::DeclRefExpr>(expr)) {
+                }
+                if (auto* declRef = llvm::dyn_cast<clang::DeclRefExpr>(expr)) {
                     if (auto* varDecl = llvm::dyn_cast<clang::VarDecl>(declRef->getDecl()))
                         if (checkClangVarDeclType(varDecl))
                             return inFact->get(mapVars.at(varDecl));
                     return CPValue::getNAC();
-                } else if (auto* unaryOp = llvm::dyn_cast<clang::UnaryOperator>(expr)) {
+                }
+                if (auto* unaryOp = llvm::dyn_cast<clang::UnaryOperator>(expr)) {
                     auto subExpr = unaryOp->getSubExpr();
                     switch (unaryOp->getOpcode()) {
                         case clang::UnaryOperatorKind::UO_Plus:
@@ -210,7 +254,8 @@ namespace analyzer::analysis::dataflow {
                         default:
                             return CPValue::getNAC();
                     }
-                } else if (auto* binaryOperator = llvm::dyn_cast<clang::BinaryOperator>(expr)) {
+                }
+                if (auto* binaryOperator = llvm::dyn_cast<clang::BinaryOperator>(expr)) {
                     auto lhs = binaryOperator->getLHS();
                     auto rhs = binaryOperator->getRHS();
                     auto rhsValue = calculateExprCPValue(rhs, inFact);
@@ -273,12 +318,10 @@ namespace analyzer::analysis::dataflow {
                             default:
                                 return CPValue::getNAC();
                         }
-                    } else {
-                        return CPValue::getUndef();
                     }
-                } else {
-                    return CPValue::getNAC();
+                    return CPValue::getUndef();
                 }
+                return CPValue::getNAC();
             }
         };
 

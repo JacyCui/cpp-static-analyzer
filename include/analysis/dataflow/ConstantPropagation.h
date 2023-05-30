@@ -18,13 +18,32 @@ namespace analyzer::analysis::dataflow {
     public:
 
         /**
+         * @return the Undefined value of constant propagation
+         */
+        [[nodiscard]] static std::shared_ptr<CPValue> getUndef();
+
+        /**
+         * @return the Not A Constant value of constant propagation
+         */
+        [[nodiscard]] static std::shared_ptr<CPValue> getNAC();
+
+        /**
+         * @brief make a constant value for constant propagation
+         * @param constantValue the constant value
+         * @return the constant value for constant propagation
+         */
+        [[nodiscard]] static std::shared_ptr<CPValue> makeConstant(const llvm::APSInt &constantValue);
+
+    public:
+
+        /**
          * @class CPValueType
          * @brief constant propagation value kind
          */
         enum class Kind {
-            UNDEF,
-            NAC,
-            CONSTANT
+            UNDEF, ///< undefined value for const propagation
+            NAC, ///< Not A Constant value for const propagation
+            CONSTANT ///< constant value for const propagation
         };
 
         /**
@@ -32,57 +51,22 @@ namespace analyzer::analysis::dataflow {
          * @param kind the constant propagation value type
          * @param constantValue the constant value
          */
-        explicit CPValue(Kind kind, llvm::APSInt constantValue = llvm::APSInt())
-            : kind(kind), constantValue(std::move(constantValue)) { }
+        explicit CPValue(Kind kind, llvm::APSInt constantValue = llvm::APSInt());
 
         /**
-         * @brief check if the constant propagation value is undefined
          * @return true if the constant propagation value is undefined, false otherwise
          */
-        [[nodiscard]] bool isUndef() const {
-            return kind == Kind::UNDEF;
-        }
+        [[nodiscard]] bool isUndef() const;
 
         /**
-         * @brief check if the constant propagation value is not a constant
          * @return true if the constant propagation value is not a constant, false otherwise
          */
-        [[nodiscard]] bool isNAC() const {
-            return kind == Kind::NAC;
-        }
+        [[nodiscard]] bool isNAC() const;
 
         /**
-         * @brief check if the constant propagation value is a constant
          * @return true if the constant propagation value is a constant, false otherwise
          */
-        [[nodiscard]] bool isConstant() const {
-            return kind == Kind::CONSTANT;
-        }
-
-        /**
-         * @brief get the constant propagation Undefine value
-         * @return the constant propagation Undefine value
-         */
-        [[nodiscard]] static std::shared_ptr<CPValue> getUndef() {
-            return Undef;
-        }
-
-        /**
-         * @brief get the constant propagation Not A Constant value
-         * @return the constant propagation Not A Constant value 
-         */
-        [[nodiscard]] static std::shared_ptr<CPValue> getNAC() {
-            return NAC;
-        }
-
-        /**
-         * @brief make a constant propagation constant value
-         * @param constantValue the constant value
-         * @return the constant propagation constant value
-         */
-        [[nodiscard]] static std::shared_ptr<CPValue> makeConstant(const llvm::APSInt &constantValue) {
-            return std::make_shared<CPValue>(Kind::CONSTANT, constantValue);
-        }
+        [[nodiscard]] bool isConstant() const;
 
         /**
          * @brief get the constant value
@@ -99,12 +83,15 @@ namespace analyzer::analysis::dataflow {
             return kind == other.kind && constantValue == other.constantValue;
         }
 
-    protected:
+    private:
 
-        Kind kind;
-        llvm::APSInt constantValue;
+        static std::shared_ptr<CPValue> Undef, NAC; ///< two special constant propagation value
 
-        static std::shared_ptr<CPValue> Undef, NAC;
+    private:
+
+        Kind kind; ///< constant propagation value kind
+
+        llvm::APSInt constantValue; ///< constant value
 
     };
 
@@ -112,11 +99,8 @@ namespace analyzer::analysis::dataflow {
      * @class CPFact
      * @brief constant propagation fact
      */
-    class CPFact : public fact::MapFact<ir::Var, CPValue> {
+    class CPFact: public fact::MapFact<ir::Var, CPValue> {
     public:
-
-        // CPFact(const fact::MapFact<ir::Var, CPValue>& mapFact)
-        //     : MapFact(mapFact) { }
 
         /**
          * @brief get the CPValue of a given var
@@ -124,7 +108,7 @@ namespace analyzer::analysis::dataflow {
          * @return the CPValue to which the specified key is mapped,
          * or Undef if this map contains no mapping for the given var
          */
-        [[nodiscard]] std::shared_ptr<CPValue> get(const std::shared_ptr<ir::Var>& key) const;
+        [[nodiscard]] std::shared_ptr<CPValue> get(const std::shared_ptr<ir::Var>& key) const override;
 
         /**
          * @brief Updates the key-value mapping in this fact.
@@ -132,7 +116,7 @@ namespace analyzer::analysis::dataflow {
          * @param value the CPValue to be bound to the var
          * @return true if the update changes this fact, otherwise
          */
-        bool update(const std::shared_ptr<ir::Var>& key, const std::shared_ptr<CPValue>& value);
+        bool update(const std::shared_ptr<ir::Var>& key, const std::shared_ptr<CPValue>& value) override;
 
     };
     
@@ -153,8 +137,8 @@ namespace analyzer::analysis::dataflow {
 
         [[nodiscard]] std::unique_ptr<DataflowAnalysis<CPFact>>
             makeAnalysis(const std::shared_ptr<graph::CFG>& cfg) const override;
-    };
 
+    };
 
 } // dataflow
 
