@@ -42,3 +42,23 @@ int factor(int n) {
     }
     return result;
 }
+
+void test2(int a, int b, int c, int d, int e) {
+    a = 1;
+    b = 2;
+    while (1) {
+        c = a + b;
+        d = c - a;
+        while (1) {
+            d = b + d;
+            if (1) break;
+            d = a + b;
+            e = e + 1;
+        }
+        b = a + b;
+        e = c - a;
+    }
+    a = b * d;
+    b = a - d;
+}
+

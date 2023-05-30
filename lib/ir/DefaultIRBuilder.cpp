@@ -121,6 +121,9 @@ namespace analyzer::ir {
             }
 
             for (const clang::CFGBlock* succ : block->succs()) {
+                if (!succ) {
+                    continue;
+                }
                 if (succ == &method.getClangCFG()->getExit()) {
                     cfg->addEdge(std::make_shared<graph::DefaultCFGEdge>
                             (source, exit, graph::CFGEdge::Kind::EXIT_EDGE));

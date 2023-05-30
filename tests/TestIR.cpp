@@ -9,7 +9,7 @@ namespace graph = al::analysis::graph;
 
 class IRTestFixture {
 protected:
-    std::shared_ptr<air::IR> ir1, ir2, ir3, ir4;
+    std::shared_ptr<air::IR> ir1, ir2, ir3, ir4, ir5;
 public:
     IRTestFixture() {
         al::World::initialize("resources/example02");
@@ -18,10 +18,18 @@ public:
         ir2 = world.getMethodBySignature("int test1(int, int)")->getIR();
         ir3 = world.getMethodBySignature("int fib(int)")->getIR();
         ir4 = world.getMethodBySignature("int factor(int)")->getIR();
+        ir5 = world.getMethodBySignature("void test2(int, int, int, int, int)")->getIR();
     }
 };
 
 TEST_SUITE_BEGIN("testIR");
+
+TEST_CASE_FIXTURE(IRTestFixture, "testIRBuilding"
+    * doctest::description("testing successful ir building")) {
+
+    al::World::getLogger().Success("Finish testing successful ir building ...");
+
+}
 
 TEST_CASE_FIXTURE(IRTestFixture, "testGetParams"
     * doctest::description("testing get method ir parameters")) {
