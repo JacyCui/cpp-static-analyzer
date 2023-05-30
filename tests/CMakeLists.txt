@@ -6,6 +6,7 @@ add_executable(tests
         TestDataflowFacts.cpp
         TestReachingDefinition.cpp
         TestLiveVariable.cpp
+        TestConstantPropagation.cpp
         )
 
 target_link_libraries(tests

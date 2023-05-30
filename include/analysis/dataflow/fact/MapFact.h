@@ -19,7 +19,7 @@ namespace analyzer::analysis::dataflow::fact {
      * @tparam V value type
      */
     template <typename K, typename V>
-    class MapFact final: public util::Copyable<MapFact<K, V>> {
+    class MapFact: public util::Copyable<MapFact<K, V>> {
     public:
 
         /**
@@ -28,7 +28,7 @@ namespace analyzer::analysis::dataflow::fact {
          * @return the value to which the specified key is mapped,
          * or nullptr if this map contains no mapping for the key.
          */
-        [[nodiscard]] std::shared_ptr<V> get(const std::shared_ptr<K>& key) const
+        [[nodiscard]] virtual std::shared_ptr<V> get(const std::shared_ptr<K>& key) const
         {
             if (map.find(key) == map.end()) {
                 return nullptr;
@@ -42,7 +42,7 @@ namespace analyzer::analysis::dataflow::fact {
          * @param value the value to be bound to the key
          * @return true if the update changes this fact, otherwise
          */
-        bool update(const std::shared_ptr<K>& key, const std::shared_ptr<V>& value)
+        virtual bool update(const std::shared_ptr<K>& key, const std::shared_ptr<V>& value)
         {
             if (map.find(key) == map.end()) {
                 map.emplace(key, value);
@@ -60,7 +60,7 @@ namespace analyzer::analysis::dataflow::fact {
          * @param key the key to remove its value
          * @return the previous value associated with key, or null if there was no mapping for key.
          */
-        std::shared_ptr<V> remove(const std::shared_ptr<K>& key)
+        virtual std::shared_ptr<V> remove(const std::shared_ptr<K>& key)
         {
             if (map.find(key) == map.end()) {
                 return nullptr;
@@ -75,7 +75,7 @@ namespace analyzer::analysis::dataflow::fact {
          * @param fact the fact to be copied
          * @return true if this fact changed as a result of the call, otherwise false.
          */
-        bool copyFrom(const std::shared_ptr<MapFact<K, V>> fact)
+        virtual bool copyFrom(const std::shared_ptr<MapFact<K, V>> fact)
         {
             bool changed = false;
             for (const auto& [key, value] : fact->getMap()) {
@@ -96,7 +96,7 @@ namespace analyzer::analysis::dataflow::fact {
         /**
          * @brief Clears all content in this fact.
          */
-        void clear()
+        virtual void clear()
         {
             map.clear();
         }
@@ -104,7 +104,7 @@ namespace analyzer::analysis::dataflow::fact {
         /**
          * @return a set of the keys contained in this fact.
          */
-        [[nodiscard]] std::unordered_set<std::shared_ptr<K>> keySet() const
+        [[nodiscard]] virtual std::unordered_set<std::shared_ptr<K>> keySet() const
         {
             std::unordered_set<std::shared_ptr<K>> result;
             for (auto& [k, _] : map) {
@@ -116,9 +116,9 @@ namespace analyzer::analysis::dataflow::fact {
         /**
          * @return a set of the values contained in this fact.
          */
-        [[nodiscard]] std::unordered_set<std::shared_ptr<K>> valueSet() const
+        [[nodiscard]] virtual std::unordered_set<std::shared_ptr<V>> valueSet() const
         {
-            std::unordered_set<std::shared_ptr<K>> result;
+            std::unordered_set<std::shared_ptr<V>> result;
             for (auto& [_, v] : map) {
                 result.emplace(v);
             }
@@ -128,7 +128,7 @@ namespace analyzer::analysis::dataflow::fact {
         /**
          * @return true if this fact is empty, otherwise false
          */
-        [[nodiscard]] bool isEmpty() const
+        [[nodiscard]] virtual bool isEmpty() const
         {
             return map.empty();
         }
@@ -136,7 +136,7 @@ namespace analyzer::analysis::dataflow::fact {
         /**
          * @return the size of this map fact
          */
-        [[nodiscard]] std::size_t size() const
+        [[nodiscard]] virtual std::size_t size() const
         {
             return map.size();
         }
@@ -146,7 +146,7 @@ namespace analyzer::analysis::dataflow::fact {
          * @param other another map fact
          * @return true if this map fact is equal to other map fact, otherwise false
          */
-        [[nodiscard]] bool equalsTo(const std::shared_ptr<MapFact<K, V>>& other) const
+        [[nodiscard]] virtual bool equalsTo(const std::shared_ptr<MapFact<K, V>>& other) const
         {
             return map == other->getMap();
         }
@@ -155,7 +155,7 @@ namespace analyzer::analysis::dataflow::fact {
          * @brief call processor function for each key-value pairs in this map fact
          * @param processor a processor function to process each key-value pair
          */
-        void forEach(std::function<void(std::shared_ptr<K>, std::shared_ptr<V>)> processor)
+        virtual void forEach(std::function<void(std::shared_ptr<K>, std::shared_ptr<V>)> processor)
         {
             for (auto [k, v] : map) {
                 processor(k, v);
