@@ -116,9 +116,9 @@ namespace analyzer::analysis::dataflow::fact {
         /**
          * @return a set of the values contained in this fact.
          */
-        [[nodiscard]] virtual std::unordered_set<std::shared_ptr<K>> valueSet() const
+        [[nodiscard]] virtual std::unordered_set<std::shared_ptr<V>> valueSet() const
         {
-            std::unordered_set<std::shared_ptr<K>> result;
+            std::unordered_set<std::shared_ptr<V>> result;
             for (auto& [_, v] : map) {
                 result.emplace(v);
             }
