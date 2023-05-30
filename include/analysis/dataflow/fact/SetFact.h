@@ -18,7 +18,7 @@ namespace analyzer::analysis::dataflow::fact {
      * @tparam E elements type
      */
     template <typename E>
-    class SetFact final: public util::Copyable<SetFact<E>> {
+    class SetFact: public util::Copyable<SetFact<E>> {
     public:
 
         /**
@@ -26,7 +26,7 @@ namespace analyzer::analysis::dataflow::fact {
          * @param e the element to be checked
          * @return true if this set contains the specified element, otherwise false.
          */
-        [[nodiscard]] bool contains(const std::shared_ptr<E>& e) const
+        [[nodiscard]] virtual bool contains(const std::shared_ptr<E>& e) const
         {
             return set.find(e) != set.end();
         }
@@ -36,7 +36,7 @@ namespace analyzer::analysis::dataflow::fact {
          * @param e the element to be added
          * @return true if this fact changed as a result of the call, otherwise false.
          */
-        bool add(const std::shared_ptr<E>& e)
+        virtual bool add(const std::shared_ptr<E>& e)
         {
             return set.emplace(e).second;
         }
@@ -46,7 +46,7 @@ namespace analyzer::analysis::dataflow::fact {
          * @param e the element to be removed
          * @return true if any elements were removed as a result of the call, otherwise false.
          */
-        bool remove(const std::shared_ptr<E>& e)
+        virtual bool remove(const std::shared_ptr<E>& e)
         {
             return set.erase(e) == 1;
         }
@@ -56,7 +56,7 @@ namespace analyzer::analysis::dataflow::fact {
          * @param filter a predicate for elements to be removed
          * @return true if any elements were removed as a result of the call, otherwise false.
          */
-        bool removeIf(std::function<bool(const std::shared_ptr<E>&)> filter)
+        virtual bool removeIf(std::function<bool(const std::shared_ptr<E>&)> filter)
         {
             std::size_t oldSize = set.size();
             std::vector<std::shared_ptr<E>> toRemove;
@@ -76,7 +76,7 @@ namespace analyzer::analysis::dataflow::fact {
          * @param other another set fact
          * @return true if this fact changed as a result of the call, otherwise false.
          */
-        bool removeAll(const std::shared_ptr<SetFact<E>>& other)
+        virtual bool removeAll(const std::shared_ptr<SetFact<E>>& other)
         {
             return removeIf([&](const std::shared_ptr<E>& e) -> bool {
                return other->contains(e);
@@ -88,7 +88,7 @@ namespace analyzer::analysis::dataflow::fact {
          * @param other another set fact
          * @return true if this fact changed as a result of the call, otherwise false.
          */
-        bool unionN(const std::shared_ptr<SetFact<E>>& other)
+        virtual bool unionN(const std::shared_ptr<SetFact<E>>& other)
         {
             std::size_t oldSize = set.size();
             set.insert(other->getSet().begin(), other->getSet().end());
@@ -100,7 +100,8 @@ namespace analyzer::analysis::dataflow::fact {
          * @param other another set fact
          * @return a new fact which is the union of this and other facts.
          */
-        [[nodiscard]] std::shared_ptr<SetFact<E>> unionWith(const std::shared_ptr<SetFact<E>>& other) const
+        [[nodiscard]] virtual std::shared_ptr<SetFact<E>>
+            unionWith(const std::shared_ptr<SetFact<E>>& other) const
         {
             std::unordered_set<std::shared_ptr<E>> result;
             std::set_union(set.begin(), set.end(),
@@ -114,7 +115,7 @@ namespace analyzer::analysis::dataflow::fact {
          * @param other another set fact
          * @return true if this fact changed as a result of the call, otherwise false.
          */
-        bool intersect(const std::shared_ptr<SetFact<E>>& other)
+        virtual bool intersect(const std::shared_ptr<SetFact<E>>& other)
         {
             return removeIf([&] (const std::shared_ptr<E>& e) -> bool {
                 return !other->contains(e);
@@ -126,7 +127,8 @@ namespace analyzer::analysis::dataflow::fact {
          * @param other another set fact
          * @return a new fact which is the intersection of this and other facts.
          */
-        [[nodiscard]] std::shared_ptr<SetFact<E>> intersectWith(const std::shared_ptr<SetFact<E>>& other) const
+        [[nodiscard]] virtual std::shared_ptr<SetFact<E>>
+            intersectWith(const std::shared_ptr<SetFact<E>>& other) const
         {
             std::unordered_set<std::shared_ptr<E>> result;
             std::set_intersection(set.begin(), set.end(),
@@ -139,7 +141,7 @@ namespace analyzer::analysis::dataflow::fact {
          * @brief sets the content of this set to the same as other set.
          * @param other another set fact
          */
-        void setSetFact(const std::shared_ptr<SetFact<E>>& other)
+        virtual void setSetFact(const std::shared_ptr<SetFact<E>>& other)
         {
             set = other->getSet();
         }
@@ -156,7 +158,7 @@ namespace analyzer::analysis::dataflow::fact {
         /**
          * @brief clears all content in this fact.
          */
-        void clear()
+        virtual void clear()
         {
             set.clear();
         }
@@ -164,7 +166,7 @@ namespace analyzer::analysis::dataflow::fact {
         /**
          * @return true if this fact is empty, otherwise false
          */
-        [[nodiscard]] bool isEmpty() const
+        [[nodiscard]] virtual bool isEmpty() const
         {
             return set.empty();
         }
@@ -172,7 +174,7 @@ namespace analyzer::analysis::dataflow::fact {
         /**
          * @return the size of this set fact
          */
-        [[nodiscard]] std::size_t size() const
+        [[nodiscard]] virtual std::size_t size() const
         {
             return set.size();
         }
@@ -182,7 +184,7 @@ namespace analyzer::analysis::dataflow::fact {
          * @param other another set fact
          * @return true if this set fact is equal to other set fact, otherwise false
          */
-        [[nodiscard]] bool equalsTo(const std::shared_ptr<SetFact<E>>& other) const
+        [[nodiscard]] virtual bool equalsTo(const std::shared_ptr<SetFact<E>>& other) const
         {
             return set == other->getSet();
         }
@@ -191,7 +193,7 @@ namespace analyzer::analysis::dataflow::fact {
          * @brief call processor function for each elements in this set fact
          * @param processor a processor function to process each element
          */
-        void forEach(std::function<void(std::shared_ptr<E>)> processor)
+        virtual void forEach(std::function<void(std::shared_ptr<E>)> processor)
         {
             for (std::shared_ptr<E> e : set) {
                 processor(e);
