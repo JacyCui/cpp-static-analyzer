@@ -53,12 +53,12 @@ namespace analyzer {
          * @brief must be called after calling {@code initialize}
          * @return const reference to the world instance created by {@code initialize}
          */
-        static const World& get();
+        [[nodiscard]] static const World& get();
 
         /**
          * @return the current logger of the entire world
          */
-        static util::Logger& getLogger();
+        [[nodiscard]] static util::Logger& getLogger();
 
         /**
          * @param newLogger a new logger to be used from now on
