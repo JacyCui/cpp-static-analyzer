@@ -72,22 +72,29 @@ namespace analyzer::analysis::dataflow {
         }
     }
 
-    //// ============== ConstantPropagation ============== ////
+    //// ============== CPResult ============== ////
 
-    ConstantPropagation::ConstantPropagation(std::unique_ptr<config::AnalysisConfig> &analysisConfig)
-        : AnalysisDriver<CPFact>(analysisConfig),
-          exprValues(std::make_shared<std::unordered_map<const clang::Expr*, std::shared_ptr<CPValue>>>())
+    CPResult::CPResult(std::shared_ptr<std::unordered_map<const clang::Expr*, std::shared_ptr<CPValue>>> exprValues)
+        : exprValues(std::move(exprValues))
     {
-    
+
     }
 
-    std::shared_ptr<CPValue> ConstantPropagation::getExprValue(const clang::Expr *expr) const
+    std::shared_ptr<CPValue> CPResult::getExprValue(const clang::Expr* expr) const
     {
         auto it = exprValues->find(expr);
         if (it != exprValues->end()) {
             return it->second;
         }
         return nullptr;
+    }
+
+    //// ============== ConstantPropagation ============== ////
+
+    ConstantPropagation::ConstantPropagation(std::unique_ptr<config::AnalysisConfig> &analysisConfig)
+        : AnalysisDriver<CPFact>(analysisConfig)
+    {
+    
     }
 
     std::unique_ptr<DataflowAnalysis<CPFact>>
@@ -470,10 +477,12 @@ namespace analyzer::analysis::dataflow {
             [[nodiscard]] std::shared_ptr<fact::DataflowResult<CPFact>>
                 getResult() const override
             {
-                return std::make_shared<fact::DataflowResult<CPFact>>();
+                return std::make_shared<CPResult>(exprValues);
             }
 
         };
+
+        auto exprValues = std::make_shared<std::unordered_map<const clang::Expr*, std::shared_ptr<CPValue>>>();
 
         return std::make_unique<Analysis>(cfg, exprValues);
     }

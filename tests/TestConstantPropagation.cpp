@@ -15,6 +15,7 @@ namespace dfact = al::analysis::dataflow::fact;
 class ConstPropagationTestFixture {
 protected:
     std::shared_ptr<air::IR> dummy, typeCast, ifElse, binaryOp, loop, incDec, array, call;
+    std::unique_ptr<df::ConstantPropagation> cp;
     
 public:
     ConstPropagationTestFixture() {
@@ -28,6 +29,12 @@ public:
         incDec = world.getMethodBySignature("void ConstPropagation::incDec()")->getIR();
         array = world.getMethodBySignature("int ConstPropagation::array()")->getIR();
         call = world.getMethodBySignature("int ConstPropagation::call()")->getIR();
+
+        std::unique_ptr<cf::AnalysisConfig> analysisConfig;
+        analysisConfig = std::make_unique<cf::DefaultAnalysisConfig>("constant propagation analysis");
+        cp = std::make_unique<df::ConstantPropagation>(analysisConfig);
+
+        CHECK(analysisConfig == nullptr);
     }
 };
 
@@ -59,9 +66,6 @@ TEST_CASE_FIXTURE(ConstPropagationTestFixture, "testConstPropagationCaseDummy"
     std::shared_ptr<air::Var> x = varMap.at("x");
     std::shared_ptr<air::Var> y = varMap.at("y");
 
-    std::unique_ptr<cf::AnalysisConfig> analysisConfig;
-    analysisConfig = std::make_unique<cf::DefaultAnalysisConfig>("constant propagation analysis");
-    std::unique_ptr<df::ConstantPropagation> cp = std::make_unique<df::ConstantPropagation>(analysisConfig);
     std::shared_ptr<dfact::DataflowResult<df::CPFact>> result = cp->analyze(dummy);
 
     CHECK(result->getOutFact(s1)->get(x)->isUndef());
@@ -101,9 +105,6 @@ TEST_CASE_FIXTURE(ConstPropagationTestFixture, "testConstPropagationTypeCase"
     std::shared_ptr<air::Var> y = varMap.at("y");
     std::shared_ptr<air::Var> z = varMap.at("z");
 
-    std::unique_ptr<cf::AnalysisConfig> analysisConfig;
-    analysisConfig = std::make_unique<cf::DefaultAnalysisConfig>("constant propagation analysis");
-    std::unique_ptr<df::ConstantPropagation> cp = std::make_unique<df::ConstantPropagation>(analysisConfig);
     std::shared_ptr<dfact::DataflowResult<df::CPFact>> result = cp->analyze(typeCast);
     auto fact = result->getInFact(exit);
 
@@ -147,9 +148,6 @@ TEST_CASE_FIXTURE(ConstPropagationTestFixture, "testConstPropagationCaseIfElse"
     std::shared_ptr<air::Var> u = varMap.at("u");
     std::shared_ptr<air::Var> v = varMap.at("v");
 
-    std::unique_ptr<cf::AnalysisConfig> analysisConfig;
-    analysisConfig = std::make_unique<cf::DefaultAnalysisConfig>("constant propagation analysis");
-    std::unique_ptr<df::ConstantPropagation> cp = std::make_unique<df::ConstantPropagation>(analysisConfig);
     std::shared_ptr<dfact::DataflowResult<df::CPFact>> result = cp->analyze(ifElse);
     auto fact = result->getInFact(exit);
 
@@ -202,9 +200,6 @@ TEST_CASE_FIXTURE(ConstPropagationTestFixture, "testConstPropagationCaseBinaryOp
     std::shared_ptr<air::Var> RShift = varMap.at("RShift");
     std::shared_ptr<air::Var> zero = varMap.at("zero");
 
-    std::unique_ptr<cf::AnalysisConfig> analysisConfig;
-    analysisConfig = std::make_unique<cf::DefaultAnalysisConfig>("constant propagation analysis");
-    std::unique_ptr<df::ConstantPropagation> cp = std::make_unique<df::ConstantPropagation>(analysisConfig);
     std::shared_ptr<dfact::DataflowResult<df::CPFact>> result = cp->analyze(binaryOp);
     CHECK(result->getOutFact(cfg->getEntry())->get(n)->isNAC());
 
@@ -265,9 +260,6 @@ TEST_CASE_FIXTURE(ConstPropagationTestFixture, "testConstPropagationCaseLoop"
     std::shared_ptr<air::Var> a = varMap.at("a");
     std::shared_ptr<air::Var> c = varMap.at("c");
 
-    std::unique_ptr<cf::AnalysisConfig> analysisConfig;
-    analysisConfig = std::make_unique<cf::DefaultAnalysisConfig>("constant propagation analysis");
-    std::unique_ptr<df::ConstantPropagation> cp = std::make_unique<df::ConstantPropagation>(analysisConfig);
     std::shared_ptr<dfact::DataflowResult<df::CPFact>> result = cp->analyze(loop);
 
     auto fact = result->getInFact(exit);
@@ -280,19 +272,19 @@ TEST_CASE_FIXTURE(ConstPropagationTestFixture, "testConstPropagationCaseLoop"
 
 TEST_CASE_FIXTURE(ConstPropagationTestFixture, "testConstPropagationIncDec"
     * doctest::description("testing constant propagation example inc-dec")) {
-    
+
     al::World::getLogger().Progress("Testing constant propagation example inc-dec ...");
 
     std::shared_ptr<graph::CFG> cfg = incDec->getCFG();
     std::unordered_map<std::string, std::shared_ptr<air::Stmt>> stmtMap;
     for (const std::shared_ptr<air::Stmt>& s : incDec->getStmts()) {
-       al::World::getLogger().Debug(s->str());
-       stmtMap.emplace(s->str(), s);
+    al::World::getLogger().Debug(s->str());
+    stmtMap.emplace(s->str(), s);
     }
 
     std::unordered_map<std::string, std::shared_ptr<air::Var>> varMap;
     for (const std::shared_ptr<air::Var>& v : incDec->getVars()) {
-       varMap.emplace(v->getName(), v);
+    varMap.emplace(v->getName(), v);
     }
 
     std::shared_ptr<air::Stmt> exit = cfg->getExit();
@@ -302,9 +294,6 @@ TEST_CASE_FIXTURE(ConstPropagationTestFixture, "testConstPropagationIncDec"
     std::shared_ptr<air::Var> c = varMap.at("c");
     std::shared_ptr<air::Var> d = varMap.at("d");
 
-    std::unique_ptr<cf::AnalysisConfig> analysisConfig;
-    analysisConfig = std::make_unique<cf::DefaultAnalysisConfig>("constant propagation analysis");
-    std::unique_ptr<df::ConstantPropagation> cp = std::make_unique<df::ConstantPropagation>(analysisConfig);
     std::shared_ptr<dfact::DataflowResult<df::CPFact>> result = cp->analyze(incDec);
 
     auto fact = result->getInFact(exit);
@@ -328,32 +317,30 @@ TEST_CASE_FIXTURE(ConstPropagationTestFixture, "testConstPropagationArray"
     std::shared_ptr<graph::CFG> cfg = array->getCFG();
     std::unordered_map<std::string, std::shared_ptr<air::Stmt>> stmtMap;
     for (const std::shared_ptr<air::Stmt>& s : array->getStmts()) {
-       al::World::getLogger().Debug(s->str());
-       stmtMap.emplace(s->str(), s);
+    al::World::getLogger().Debug(s->str());
+    stmtMap.emplace(s->str(), s);
     }
 
     std::unordered_map<std::string, std::shared_ptr<air::Var>> varMap;
     for (const std::shared_ptr<air::Var>& v : array->getVars()) {
-       varMap.emplace(v->getName(), v);
+    varMap.emplace(v->getName(), v);
     }
 
-    std::unique_ptr<cf::AnalysisConfig> analysisConfig;
-    analysisConfig = std::make_unique<cf::DefaultAnalysisConfig>("constant propagation analysis");
-    std::unique_ptr<df::ConstantPropagation> cp = std::make_unique<df::ConstantPropagation>(analysisConfig);
-    std::shared_ptr<dfact::DataflowResult<df::CPFact>> result = cp->analyze(array);
+    std::shared_ptr<dfact::DataflowResult<df::CPFact>> df_result = cp->analyze(array);
+    std::shared_ptr<df::CPResult> result = std::dynamic_pointer_cast<df::CPResult>(df_result);
 
     std::shared_ptr<air::Stmt> stmt = stmtMap.at("a[i][j]");
     /*
-       `-ImplicitCastExpr 0x14580cda8 <col:16, col:22> 'int' <LValueToRValue>
-        `-ArraySubscriptExpr 0x14580cd88 <col:16, col:22> 'int' lvalue
-          |-ImplicitCastExpr1 0x14580cd58 <col:16, col:19> 'int *' <ArrayToPointerDecay>
-          | `-ArraySubscriptExpr1 0x14580cce8 <col:16, col:19> 'int[2]' lvalue
-          |   |-ImplicitCastExpr2 0x14580ccb8 <col:16> 'int (*)[2]' <ArrayToPointerDecay>
-          |   | `-DeclRefExpr 0x14580cc50 <col:16> 'int[2][2]' lvalue Var 0x14580ca60 'a' 'int[2][2]'
-          |   `-ImplicitCastExpr_i 0x14580ccd0 <col:18> 'int' <LValueToRValue>
-          |     `-DeclRefExpr 0x14580cc70 <col:18> 'int' lvalue Var 0x14580caf8 'i' 'int'
-          `-ImplicitCastExpr 0x14580cd70 <col:21> 'int' <LValueToRValue>
-            `-DeclRefExpr 0x14580cd08 <col:21> 'int' lvalue Var 0x14580cb98 'j' 'int'
+    `-ImplicitCastExpr 0x14580cda8 <col:16, col:22> 'int' <LValueToRValue>
+    `-ArraySubscriptExpr 0x14580cd88 <col:16, col:22> 'int' lvalue
+    |-ImplicitCastExpr1 0x14580cd58 <col:16, col:19> 'int *' <ArrayToPointerDecay>
+    | `-ArraySubscriptExpr1 0x14580cce8 <col:16, col:19> 'int[2]' lvalue
+    |   |-ImplicitCastExpr2 0x14580ccb8 <col:16> 'int (*)[2]' <ArrayToPointerDecay>
+    |   | `-DeclRefExpr 0x14580cc50 <col:16> 'int[2][2]' lvalue Var 0x14580ca60 'a' 'int[2][2]'
+    |   `-ImplicitCastExpr_i 0x14580ccd0 <col:18> 'int' <LValueToRValue>
+    |     `-DeclRefExpr 0x14580cc70 <col:18> 'int' lvalue Var 0x14580caf8 'i' 'int'
+    `-ImplicitCastExpr 0x14580cd70 <col:21> 'int' <LValueToRValue>
+     `-DeclRefExpr 0x14580cd08 <col:21> 'int' lvalue Var 0x14580cb98 'j' 'int'
     */
 
     const clang::Stmt *clangStmt = stmt->getClangStmt();
@@ -368,7 +355,7 @@ TEST_CASE_FIXTURE(ConstPropagationTestFixture, "testConstPropagationArray"
     CHECK(arrayType2 != nullptr);
     CHECK_EQ(arrayType2->getSize(), 2);
     auto *implicitCastExpr_i = clang::dyn_cast<clang::ImplicitCastExpr>(arraySubscriptExpr1->getIdx());
-    auto i_value = cp->getExprValue(implicitCastExpr_i);
+    auto i_value = result->getExprValue(implicitCastExpr_i);
     CHECK(i_value != nullptr);
     CHECK(i_value->isConstant());
     CHECK_EQ(i_value->getConstantValue(), 2);
@@ -377,7 +364,7 @@ TEST_CASE_FIXTURE(ConstPropagationTestFixture, "testConstPropagationArray"
     CHECK(arrayType1 != nullptr);
     CHECK_EQ(arrayType1->getSize(), 2);
     auto *implicitCastExpr_j = clang::dyn_cast<clang::ImplicitCastExpr>(arraySubscriptExpr->getIdx());
-    auto j_value = cp->getExprValue(implicitCastExpr_j);
+    auto j_value = result->getExprValue(implicitCastExpr_j);
     CHECK(j_value != nullptr);
     CHECK(j_value->isConstant());
     CHECK_EQ(j_value->getConstantValue(), 3);
@@ -394,26 +381,24 @@ TEST_CASE_FIXTURE(ConstPropagationTestFixture, "testConstPropagationCall"
     std::shared_ptr<graph::CFG> cfg = call->getCFG();
     std::unordered_map<std::string, std::shared_ptr<air::Stmt>> stmtMap;
     for (const std::shared_ptr<air::Stmt>& s : call->getStmts()) {
-       al::World::getLogger().Debug(s->str());
-       stmtMap.emplace(s->str(), s);
+    al::World::getLogger().Debug(s->str());
+    stmtMap.emplace(s->str(), s);
     }
 
     std::unordered_map<std::string, std::shared_ptr<air::Var>> varMap;
     for (const std::shared_ptr<air::Var>& v : call->getVars()) {
-       varMap.emplace(v->getName(), v);
+    varMap.emplace(v->getName(), v);
     }
 
-    std::unique_ptr<cf::AnalysisConfig> analysisConfig;
-    analysisConfig = std::make_unique<cf::DefaultAnalysisConfig>("constant propagation analysis");
-    std::unique_ptr<df::ConstantPropagation> cp = std::make_unique<df::ConstantPropagation>(analysisConfig);
-    std::shared_ptr<dfact::DataflowResult<df::CPFact>> result = cp->analyze(call);
+    std::shared_ptr<dfact::DataflowResult<df::CPFact>> df_result = cp->analyze(call);
+    std::shared_ptr<df::CPResult> result = std::dynamic_pointer_cast<df::CPResult>(df_result);
 
     std::shared_ptr<air::Stmt> stmt = stmtMap.at("foo(1 / zero)");
     auto *clangStmt = stmt->getClangStmt();
     auto *callExpr = clang::dyn_cast<clang::CallExpr>(clangStmt);
     auto *arg0 = callExpr->getArg(0);
 
-    auto arg0_value = cp->getExprValue(arg0);
+    auto arg0_value = result->getExprValue(arg0);
     CHECK(arg0_value != nullptr);
     CHECK(arg0_value->isUndef());
 
