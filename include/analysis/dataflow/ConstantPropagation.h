@@ -150,7 +150,9 @@ namespace analyzer::analysis::dataflow {
 
     private:
 
-        std::unordered_map<const clang::Expr*, std::shared_ptr<CPValue>> exprValues;
+        std::unordered_map<const clang::Expr*, std::shared_ptr<CPValue>>
+            exprValues; ///< map from clang expression to constant propagation dataflow value
+
     };
 
     /**

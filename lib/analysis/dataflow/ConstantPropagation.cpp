@@ -78,14 +78,13 @@ namespace analyzer::analysis::dataflow {
 
     void CPResult::updateExprValue(const clang::Expr* expr, const std::shared_ptr<CPValue>& value)
     {
-        exprValues[expr] = value;
+        exprValues.insert_or_assign(expr, value);
     }
 
     std::shared_ptr<CPValue> CPResult::getExprValue(const clang::Expr* expr) const
     {
-        auto it = exprValues.find(expr);
-        if (it != exprValues.end()) {
-            return it->second;
+        if (exprValues.find(expr) != exprValues.end()) {
+            return exprValues.at(expr);
         }
         return nullptr;
     }
@@ -112,8 +111,7 @@ namespace analyzer::analysis::dataflow {
             [[nodiscard]] std::shared_ptr<CPFact> newBoundaryFact() const override
             {
                 std::shared_ptr<CPFact> fact = std::make_shared<CPFact>();
-                auto params = cfg->getIR()->getParams();
-                for (const std::shared_ptr<ir::Var>& param : params) {
+                for (const std::shared_ptr<ir::Var>& param : cfg->getIR()->getParams()) {
                     if (checkVarType(param)) {
                         fact->update(param, CPValue::getNAC());
                     }
@@ -129,7 +127,9 @@ namespace analyzer::analysis::dataflow {
             void meetInto(std::shared_ptr<CPFact> fact,
                           std::shared_ptr<CPFact> target) const override
             {
-                fact->forEach([&](const std::shared_ptr<ir::Var>& var, const std::shared_ptr<CPValue>& value) {
+                fact->forEach([&](const std::shared_ptr<ir::Var>& var,
+                        const std::shared_ptr<CPValue>& value)
+                {
                     std::shared_ptr<CPValue> targetValue = target->get(var);
                     if (value->isConstant()) {
                         if (targetValue->isUndef()) {
@@ -151,7 +151,7 @@ namespace analyzer::analysis::dataflow {
             {
                 std::shared_ptr<fact::MapFact<ir::Var, CPValue>> oldOut = out->copy();
                 out->copyFrom(in);
-                auto clangStmt = stmt->getClangStmt();
+                const clang::Stmt* clangStmt = stmt->getClangStmt();
                 if (clangStmt != nullptr) {
                     if (auto *DeclStmt = llvm::dyn_cast<clang::DeclStmt>(clangStmt))
                         for (auto decl : DeclStmt->decls()) {
@@ -173,21 +173,19 @@ namespace analyzer::analysis::dataflow {
             explicit Analysis(const std::shared_ptr<graph::CFG>& myCFG)
                 : AbstractDataflowAnalysis<CPFact>(myCFG), result(std::make_shared<CPResult>())
             {
-                auto vars = myCFG->getIR()->getVars();
-                for (const std::shared_ptr<ir::Var>& var : vars) {
-                    auto* varDecl = var->getClangVarDecl();
+                for (const std::shared_ptr<ir::Var>& var : myCFG->getIR()->getVars()) {
+                    const clang::VarDecl* varDecl = var->getClangVarDecl();
                     if (varDecl != nullptr && checkClangVarDeclType(varDecl)) {
-                        mapVars[varDecl] = var;
+                        mapVars.insert_or_assign(varDecl, var);
                     }
                 }
             }
+
         private:
 
             std::shared_ptr<CPResult> result;
 
             std::unordered_map<const clang::VarDecl *, std::shared_ptr<ir::Var>> mapVars;
-
-            std::unordered_map<const clang::Expr*, std::shared_ptr<CPValue>> exprValues;
 
             static bool checkClangVarDeclType(const clang::VarDecl *varDecl)
             {
