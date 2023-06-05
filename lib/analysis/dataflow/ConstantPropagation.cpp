@@ -153,17 +153,15 @@ namespace analyzer::analysis::dataflow {
                 out->copyFrom(in);
                 const clang::Stmt* clangStmt = stmt->getClangStmt();
                 if (clangStmt != nullptr) {
-                    if (auto *DeclStmt = llvm::dyn_cast<clang::DeclStmt>(clangStmt))
-                        for (auto decl : DeclStmt->decls()) {
+                    if (auto* DeclStmt = llvm::dyn_cast<clang::DeclStmt>(clangStmt))
+                        for (clang::Decl* decl : DeclStmt->decls()) {
                             if (auto *varDecl = llvm::dyn_cast<clang::VarDecl>(decl))
                                 if (checkClangVarDeclType(varDecl)) {
-                                    std::shared_ptr<ir::Var> var = mapVars.at(varDecl);
                                     if (varDecl->hasInit()) {
-                                        auto initValue = calculateAndUpdateExprCPValue(varDecl->getInit(), in, out);
-                                        out->update(var, initValue);
+                                        out->update(mapVars.at(varDecl), calculateAndUpdateExprCPValue(varDecl->getInit(), in, out));
                                     }
                                 }
-                    } else if(auto* expr = llvm::dyn_cast<clang::Expr>(clangStmt)) {
+                    } else if (auto* expr = llvm::dyn_cast<clang::Expr>(clangStmt)) {
                         calculateAndUpdateExprCPValue(expr, in, out);
                     }
                 }
@@ -242,10 +240,9 @@ namespace analyzer::analysis::dataflow {
                 } else if (auto* characterLiteral = llvm::dyn_cast<clang::CharacterLiteral>(expr)) {
                     val = CPValue::makeConstant(llvm::APSInt(llvm::APInt(32, characterLiteral->getValue()), false));
                 } else if (auto* castExpr = llvm::dyn_cast<clang::CastExpr>(expr)) {
-                    clang::CastKind castKind = castExpr->getCastKind();
-                    auto subExpr = castExpr->getSubExpr();
-                    auto subExprValue = calculateAndUpdateExprCPValue(subExpr, inFact, outFact);
-                    switch (castKind) {
+                    std::shared_ptr<CPValue> subExprValue =
+                            calculateAndUpdateExprCPValue(castExpr->getSubExpr(), inFact, outFact);
+                    switch (castExpr->getCastKind()) {
                         case clang::CastKind::CK_LValueToRValue:
                             val = subExprValue;
                             break;
@@ -302,23 +299,25 @@ namespace analyzer::analysis::dataflow {
                             val = CPValue::getNAC();
                     }
                 } else if (auto* declRef = llvm::dyn_cast<clang::DeclRefExpr>(expr)) {
-                    if (auto* varDecl = llvm::dyn_cast<clang::VarDecl>(declRef->getDecl()))
-                        if (checkClangVarDeclType(varDecl))
+                    if (auto* varDecl = llvm::dyn_cast<clang::VarDecl>(declRef->getDecl())) {
+                        if (checkClangVarDeclType(varDecl)) {
                             val = inFact->get(mapVars.at(varDecl));
+                        }
+                    }
                     if (val == nullptr) {
                         val = CPValue::getNAC();
                     }
                 } else if (auto *parenExpr = llvm::dyn_cast<clang::ParenExpr>(expr)) {
-                    auto subExpr = parenExpr->getSubExpr();
-                    val = calculateAndUpdateExprCPValue(subExpr, inFact, outFact);
+                    val = calculateAndUpdateExprCPValue(parenExpr->getSubExpr(), inFact, outFact);
                 } else if (auto* unaryOp = llvm::dyn_cast<clang::UnaryOperator>(expr)) {
-                    auto subExpr = unaryOp->getSubExpr();
+                    clang::Expr* subExpr = unaryOp->getSubExpr();
                     switch (unaryOp->getOpcode()) {
                         case clang::UnaryOperatorKind::UO_Plus:
                             val = calculateAndUpdateExprCPValue(subExpr, inFact, outFact);
                             break;
                         case clang::UnaryOperatorKind::UO_Minus: {
-                            auto subExprValue = calculateAndUpdateExprCPValue(subExpr, inFact, outFact);
+                            std::shared_ptr<CPValue> subExprValue =
+                                    calculateAndUpdateExprCPValue(subExpr, inFact, outFact);
                             if (subExprValue->isConstant()) {
                                 val = CPValue::makeConstant(-subExprValue->getConstantValue());
                             } else {
@@ -328,7 +327,8 @@ namespace analyzer::analysis::dataflow {
                         }
                         default:
                             if (unaryOp->isIncrementDecrementOp()) {
-                                auto subExprValue = calculateAndUpdateExprCPValue(subExpr, inFact, outFact);
+                                std::shared_ptr<CPValue> subExprValue =
+                                        calculateAndUpdateExprCPValue(subExpr, inFact, outFact);
                                 std::shared_ptr<CPValue> exprDecOrIncValue;
                                 if (subExprValue->isConstant()) {
                                     auto constantValue = subExprValue->getConstantValue();
@@ -354,17 +354,17 @@ namespace analyzer::analysis::dataflow {
                             }
                     }
                 } else if (auto* binaryOperator = llvm::dyn_cast<clang::BinaryOperator>(expr)) {
-                    auto lhs = binaryOperator->getLHS();
-                    auto rhs = binaryOperator->getRHS();
-                    auto rhsValue = calculateAndUpdateExprCPValue(rhs, inFact, outFact);
+                    clang::Expr* lhs = binaryOperator->getLHS();
+                    std::shared_ptr<CPValue> rhsValue =
+                            calculateAndUpdateExprCPValue(binaryOperator->getRHS(), inFact, outFact);
                     if (binaryOperator->getOpcode() == clang::BinaryOperatorKind::BO_Assign) {
                         if (auto var = getVarFromExpr(lhs)) {
                             outFact->update(var, rhsValue);
                         }
                         val = rhsValue;
                     } else {
-                        auto lhsValue = calculateAndUpdateExprCPValue(lhs, inFact, outFact);
-                        
+                        std::shared_ptr<CPValue> lhsValue =
+                                calculateAndUpdateExprCPValue(lhs, inFact, outFact);
                         if (lhsValue->isNAC() || rhsValue->isNAC()) {
                             switch (binaryOperator->getOpcode()) {
                                 case clang::BinaryOperatorKind::BO_Div:
@@ -381,8 +381,8 @@ namespace analyzer::analysis::dataflow {
                                     val = CPValue::getNAC();
                             }
                         } else if (lhsValue->isConstant() && rhsValue->isConstant()) {
-                            auto lhsConstant = lhsValue->getConstantValue();
-                            auto rhsConstant = rhsValue->getConstantValue();
+                            llvm::APSInt lhsConstant = lhsValue->getConstantValue();
+                            llvm::APSInt rhsConstant = rhsValue->getConstantValue();
                             switch (binaryOperator->getOpcode()) {
                                 case clang::BinaryOperatorKind::BO_Add:
                                 case clang::BinaryOperatorKind::BO_AddAssign:
@@ -446,23 +446,17 @@ namespace analyzer::analysis::dataflow {
                         }
                     }
                 } else if (auto *arraySubscriptExpr = llvm::dyn_cast<clang::ArraySubscriptExpr>(expr)) {
-                    auto base = arraySubscriptExpr->getBase();
-                    auto index = arraySubscriptExpr->getIdx();
-                    calculateAndUpdateExprCPValue(base, inFact, outFact);
-                    calculateAndUpdateExprCPValue(index, inFact, outFact);
+                    calculateAndUpdateExprCPValue(arraySubscriptExpr->getBase(), inFact, outFact);
+                    calculateAndUpdateExprCPValue(arraySubscriptExpr->getIdx(), inFact, outFact);
                     val = CPValue::getNAC();
                 } else if (auto* conditionalOperator = llvm::dyn_cast<clang::ConditionalOperator>(expr)) {
-                    auto cond = conditionalOperator->getCond();
-                    auto trueExpr = conditionalOperator->getTrueExpr();
-                    auto falseExpr = conditionalOperator->getFalseExpr();
-                    calculateAndUpdateExprCPValue(cond, inFact, outFact);
-                    calculateAndUpdateExprCPValue(trueExpr, inFact, outFact);
-                    calculateAndUpdateExprCPValue(falseExpr, inFact, outFact);
+                    calculateAndUpdateExprCPValue(conditionalOperator->getCond(), inFact, outFact);
+                    calculateAndUpdateExprCPValue(conditionalOperator->getTrueExpr(), inFact, outFact);
+                    calculateAndUpdateExprCPValue(conditionalOperator->getFalseExpr(), inFact, outFact);
                     val = CPValue::getNAC();
                 } else if(auto* callExpr = llvm::dyn_cast<clang::CallExpr>(expr)) {
-                    auto callee = callExpr->getCallee();
-                    calculateAndUpdateExprCPValue(callee, inFact, outFact);
-                    for(auto arg : callExpr->arguments()) {
+                    calculateAndUpdateExprCPValue(callExpr->getCallee(), inFact, outFact);
+                    for(const clang::Expr* arg : callExpr->arguments()) {
                         calculateAndUpdateExprCPValue(arg, inFact, outFact);
                     }
                     val = CPValue::getNAC();
