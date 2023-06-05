@@ -52,7 +52,7 @@ class ConstPropagation {
         int Xor = x ^ y;
         int LShift = x << y;
         int RShift = x >> y;
-        int zero = x - div * y - mod;
+        int zero = x - (div * y) - mod;
         n /= zero;
         return n;
     }
