@@ -54,14 +54,18 @@ namespace analyzer::analysis::dataflow {
             [[nodiscard]] std::shared_ptr<fact::DataflowResult<fact::SetFact<ir::Var>>>
                 getResult() const override
             {
-                return std::make_shared<fact::DataflowResult<fact::SetFact<ir::Var>>>();
+                return result;
             }
 
             explicit Analysis(const std::shared_ptr<graph::CFG>& myCFG)
                     : AbstractDataflowAnalysis<fact::SetFact<ir::Var>>(myCFG)
             {
-
+                result = std::make_shared<fact::DataflowResult<fact::SetFact<ir::Var>>>();
             }
+
+        private:
+
+            std::shared_ptr<fact::DataflowResult<fact::SetFact<ir::Var>>> result;
 
         };
 

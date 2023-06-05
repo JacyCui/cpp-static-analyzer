@@ -6,7 +6,7 @@ project(cpp-static-analyzer
         )
 
 set(CMAKE_CXX_STANDARD 17) # the standard used in this project and llvm
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti") # add for those build llvm without rtti
+# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti") # add for those build llvm without rtti
 
 find_package(LLVM REQUIRED CONFIG)
 message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
