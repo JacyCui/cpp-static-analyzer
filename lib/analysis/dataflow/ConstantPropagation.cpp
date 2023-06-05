@@ -466,6 +466,13 @@ namespace analyzer::analysis::dataflow {
                 }
                 return val;
             }
+
+            [[nodiscard]] std::shared_ptr<fact::DataflowResult<CPFact>>
+                getResult() const override
+            {
+                return std::make_shared<fact::DataflowResult<CPFact>>();
+            }
+
         };
 
         return std::make_unique<Analysis>(cfg, exprValues);

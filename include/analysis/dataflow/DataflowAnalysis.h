@@ -57,7 +57,7 @@ namespace analyzer::analysis::dataflow {
          * @param edge the edge to check
          * @return true if this analysis needs to perform transfer for given edge, otherwise false.
          */
-        [[nodiscard]] virtual bool needTransferEdge(std::shared_ptr<graph::CFGEdge> edge) const = 0;
+        [[nodiscard, maybe_unused]] virtual bool needTransferEdge(std::shared_ptr<graph::CFGEdge> edge) const = 0;
 
         /**
          * @brief Edge Transfer function for this analysis.
@@ -68,13 +68,19 @@ namespace analyzer::analysis::dataflow {
          *                 the direction of the analysis.
          * @return the resulting edge fact
          */
-        [[nodiscard]] virtual std::shared_ptr<Fact> transferEdge
+        [[nodiscard, maybe_unused]] virtual std::shared_ptr<Fact> transferEdge
             (std::shared_ptr<graph::CFGEdge> edge, std::shared_ptr<Fact> nodeFact) const = 0;
 
         /**
          * @return the control-flow graph that this analysis works on.
          */
         [[nodiscard]] virtual std::shared_ptr<graph::CFG> getCFG() const = 0;
+
+        /**
+         * @return the dataflow result to be modified by the solver
+         * ( Note: called by the solver only once )
+         */
+        [[nodiscard]] virtual std::shared_ptr<fact::DataflowResult<Fact>> getResult() const = 0;
 
         virtual ~DataflowAnalysis() = default;
 
@@ -89,13 +95,15 @@ namespace analyzer::analysis::dataflow {
     class AbstractDataflowAnalysis: public DataflowAnalysis<Fact> {
     public:
 
-        [[nodiscard]] bool needTransferEdge(std::shared_ptr<graph::CFGEdge> edge) const override
+        [[nodiscard]] bool needTransferEdge(
+                [[maybe_unused]] std::shared_ptr<graph::CFGEdge> edge) const override
         {
             return false;
         }
 
         [[nodiscard]] std::shared_ptr<Fact> transferEdge
-            (std::shared_ptr<graph::CFGEdge> edge, std::shared_ptr<Fact> nodeFact) const override
+            ([[maybe_unused]] std::shared_ptr<graph::CFGEdge> edge,
+             [[maybe_unused]] std::shared_ptr<Fact> nodeFact) const override
         {
             World::getLogger().Error("Transfer Edge is unsupported in dataflow analysis by default.");
             throw std::runtime_error("Transfer Edge is unsupported in dataflow analysis by default.");
