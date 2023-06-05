@@ -310,6 +310,9 @@ namespace analyzer::analysis::dataflow {
                     if (val == nullptr) {
                         val = CPValue::getNAC();
                     }
+                } else if (auto *parenExpr = llvm::dyn_cast<clang::ParenExpr>(expr)) {
+                    auto subExpr = parenExpr->getSubExpr();
+                    val = calculateAndUpdateExprCPValue(subExpr, inFact, outFact);
                 } else if (auto* unaryOp = llvm::dyn_cast<clang::UnaryOperator>(expr)) {
                     auto subExpr = unaryOp->getSubExpr();
                     switch (unaryOp->getOpcode()) {
