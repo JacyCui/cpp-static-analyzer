@@ -119,7 +119,8 @@ namespace analyzer::analysis::dataflow {
         bool update(const std::shared_ptr<ir::Var>& key, const std::shared_ptr<CPValue>& value) override;
 
     };
-    
+
+
     /**
      * @class ConstantPropagation
      * @brief constant propagation analysis
@@ -133,7 +134,18 @@ namespace analyzer::analysis::dataflow {
          */
         explicit ConstantPropagation(std::unique_ptr<config::AnalysisConfig>& analysisConfig);
 
+        /**
+         * @brief get the CPValue of a given clang Expr
+         * @param expr the clang Expr to be searched
+         * @return the CPValue to which the specified key is mapped,
+         * or nullptr if this map contains no mapping for the given clang Expr
+         */
+        [[nodiscard]] std::shared_ptr<CPValue> getExprValue(const clang::Expr *expr) const;
+
     protected:
+
+        std::shared_ptr<std::unordered_map<const clang::Expr*, std::shared_ptr<CPValue>>>
+            exprValues;
 
         [[nodiscard]] std::unique_ptr<DataflowAnalysis<CPFact>>
             makeAnalysis(const std::shared_ptr<graph::CFG>& cfg) const override;

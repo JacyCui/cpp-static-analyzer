@@ -75,9 +75,19 @@ namespace analyzer::analysis::dataflow {
     //// ============== ConstantPropagation ============== ////
 
     ConstantPropagation::ConstantPropagation(std::unique_ptr<config::AnalysisConfig> &analysisConfig)
-        : AnalysisDriver<CPFact>(analysisConfig)
+        : AnalysisDriver<CPFact>(analysisConfig),
+          exprValues(std::make_shared<std::unordered_map<const clang::Expr*, std::shared_ptr<CPValue>>>())
     {
     
+    }
+
+    std::shared_ptr<CPValue> ConstantPropagation::getExprValue(const clang::Expr *expr) const
+    {
+        auto it = exprValues->find(expr);
+        if (it != exprValues->end()) {
+            return it->second;
+        }
+        return nullptr;
     }
 
     std::unique_ptr<DataflowAnalysis<CPFact>>
@@ -141,191 +151,324 @@ namespace analyzer::analysis::dataflow {
                                 if (checkClangVarDeclType(varDecl)) {
                                     std::shared_ptr<ir::Var> var = mapVars.at(varDecl);
                                     if (varDecl->hasInit()) {
-                                        auto initValue = calculateExprCPValue(varDecl->getInit(), in);
+                                        auto initValue = calculateAndUpdateExprCPValue(varDecl->getInit(), in, out);
                                         out->update(var, initValue);
                                     }
                                 }
-                    } else if(auto* binaryOp = llvm::dyn_cast<clang::BinaryOperator>(clangStmt)) {
-                        switch (binaryOp->getOpcode()) {
-                            case clang::BO_Assign:
-                            case clang::BO_AddAssign:
-                            case clang::BO_SubAssign:
-                            case clang::BO_MulAssign:
-                            case clang::BO_DivAssign:
-                            case clang::BO_RemAssign:
-                            case clang::BO_AndAssign:
-                            case clang::BO_XorAssign:
-                            case clang::BO_OrAssign:
-                            case clang::BO_ShlAssign:
-                            case clang::BO_ShrAssign: 
-                            {
-                                auto lhs = binaryOp->getLHS();
-                                if (auto *lhsDeclRef = llvm::dyn_cast<clang::DeclRefExpr>(lhs))
-                                    if (auto *lhsVarDecl = llvm::dyn_cast<clang::VarDecl>(lhsDeclRef->getDecl()))
-                                        if (checkClangVarDeclType(lhsVarDecl)) {
-                                            std::shared_ptr<ir::Var> lhsVar = mapVars.at(lhsVarDecl);
-                                            auto exprValue = calculateExprCPValue(binaryOp, in);
-                                            out->update(lhsVar, exprValue);
-                                        }
-                                break;
-                            }
-                            default:
-                                break;
-                        }
+                    } else if(auto* expr = llvm::dyn_cast<clang::Expr>(clangStmt)) {
+                        calculateAndUpdateExprCPValue(expr, in, out);
                     }
                 }
                 return !out->equalsTo(oldOut);
             }
 
-            explicit Analysis(const std::shared_ptr<graph::CFG>& myCFG)
-                : AbstractDataflowAnalysis<CPFact>(myCFG)
+            explicit Analysis(
+                    const std::shared_ptr<graph::CFG>& myCFG,
+                    std::shared_ptr<std::unordered_map<const clang::Expr*, std::shared_ptr<CPValue>>> exprValues)
+                : AbstractDataflowAnalysis<CPFact>(myCFG), exprValues(std::move(exprValues))
             {
                 auto vars = myCFG->getIR()->getVars();
                 for (const std::shared_ptr<ir::Var>& var : vars) {
                     auto* varDecl = var->getClangVarDecl();
-                    if (varDecl != nullptr && checkVarType(var)) {
+                    if (varDecl != nullptr && checkClangVarDeclType(varDecl)) {
                         mapVars[varDecl] = var;
                     }
                 }
             }
         private:
+
+            std::shared_ptr<std::unordered_map<const clang::Expr*, std::shared_ptr<CPValue>>> exprValues;
+
             std::unordered_map<const clang::VarDecl *, std::shared_ptr<ir::Var>> mapVars;
 
-            static bool checkClangVarDeclType(const clang::VarDecl *varDecl) {
+            static bool checkClangVarDeclType(const clang::VarDecl *varDecl)
+            {
                 return varDecl->getType()->isIntegerType();
             }
 
-            static bool checkVarType(const std::shared_ptr<ir::Var>& var) {
+            static bool checkVarType(const std::shared_ptr<ir::Var>& var)
+            {
                 return checkClangVarDeclType(var->getClangVarDecl());
             }
 
-            std::shared_ptr<CPValue> calculateExprCPValue(
-                    const clang::Expr *expr,
-                    const std::shared_ptr<CPFact>& inFact) const 
+            std::shared_ptr<ir::Var> getVarFromExpr(const clang::Expr *expr) const
             {
-                if (!expr->getType()->isIntegerType()) {
-                    return CPValue::getNAC();
-                }
-                if (auto* intLiteral = llvm::dyn_cast<clang::IntegerLiteral>(expr)) {
-                    bool isUnsigned = !expr->getType()->isSignedIntegerType();
-                    return CPValue::makeConstant(llvm::APSInt(intLiteral->getValue(), isUnsigned));
-                }
-                if(auto* castExpr = llvm::dyn_cast<clang::CastExpr>(expr)) {
-                    clang::CastKind castKind = castExpr->getCastKind();
-                    auto subExpr = castExpr->getSubExpr();
-                    switch (castKind) {
-                        case clang::CastKind::CK_LValueToRValue:
-                            return calculateExprCPValue(subExpr, inFact);
-                        case clang::CastKind::CK_IntegralCast: {
-                            std::shared_ptr<CPValue> subExprValue = calculateExprCPValue(subExpr, inFact);
-                            if (subExprValue->isConstant()) {
-                                return CPValue::makeConstant(llvm::APSInt(
-                                    subExprValue->getConstantValue(),
-                                    !expr->getType()->isSignedIntegerType()));
-                            } else  {
-                                return subExprValue;
-                            }
+                if (auto *declRef = llvm::dyn_cast<clang::DeclRefExpr>(expr)) {
+                    if (auto *varDecl = llvm::dyn_cast<clang::VarDecl>(declRef->getDecl())) {
+                        if (checkClangVarDeclType(varDecl)) {
+                            return mapVars.at(varDecl);
                         }
-                        default:
-                            return CPValue::getNAC();
                     }
                 }
-                if (auto* declRef = llvm::dyn_cast<clang::DeclRefExpr>(expr)) {
+                return nullptr;
+            }
+
+            static bool OpcodeIsAssign(clang::BinaryOperatorKind opcode)
+            {
+                switch (opcode) {
+                    case clang::BO_Assign:
+                    case clang::BO_AddAssign:
+                    case clang::BO_SubAssign:
+                    case clang::BO_MulAssign:
+                    case clang::BO_DivAssign:
+                    case clang::BO_RemAssign:
+                    case clang::BO_AndAssign:
+                    case clang::BO_XorAssign:
+                    case clang::BO_OrAssign:
+                    case clang::BO_ShlAssign:
+                    case clang::BO_ShrAssign:
+                        return true;
+                    default:
+                        return false;
+                }
+            }
+
+            std::shared_ptr<CPValue> calculateAndUpdateExprCPValue(
+                    const clang::Expr *expr,
+                    const std::shared_ptr<CPFact>& inFact,
+                    const std::shared_ptr<CPFact>& outFact) const 
+            {
+                std::shared_ptr<CPValue> val = nullptr;
+                
+                if (auto* intLiteral = llvm::dyn_cast<clang::IntegerLiteral>(expr)) {
+                    bool isUnsigned = !expr->getType()->isSignedIntegerType();
+                    val = CPValue::makeConstant(llvm::APSInt(intLiteral->getValue(), isUnsigned));
+                } else if (auto* characterLiteral = llvm::dyn_cast<clang::CharacterLiteral>(expr)) {
+                    val = CPValue::makeConstant(llvm::APSInt(llvm::APInt(32, characterLiteral->getValue()), false));
+                } else if (auto* castExpr = llvm::dyn_cast<clang::CastExpr>(expr)) {
+                    clang::CastKind castKind = castExpr->getCastKind();
+                    auto subExpr = castExpr->getSubExpr();
+                    auto subExprValue = calculateAndUpdateExprCPValue(subExpr, inFact, outFact);
+                    switch (castKind) {
+                        case clang::CastKind::CK_LValueToRValue:
+                            val = subExprValue;
+                            break;
+                        case clang::CastKind::CK_IntegralCast: 
+                        case clang::CastKind::CK_NoOp:
+                        {
+                            if (subExprValue->isConstant()) {
+                                if (auto* builtinTypeExpr = expr->getType()->getAs<clang::BuiltinType>()) {
+                                    unsigned numBits = -1;
+                                    bool isSigned = expr->getType()->isSignedIntegerType();
+                                    switch (builtinTypeExpr->getKind()) {
+                                        case clang::BuiltinType::Kind::Bool:
+                                            numBits = 1;
+                                            break;
+                                        case clang::BuiltinType::Kind::Char_U:
+                                        case clang::BuiltinType::Kind::UChar:
+                                        case clang::BuiltinType::Kind::Char_S:
+                                        case clang::BuiltinType::Kind::SChar:
+                                            numBits = 8;
+                                            break;
+                                        case clang::BuiltinType::Kind::Char16:
+                                        case clang::BuiltinType::Kind::UShort:
+                                        case clang::BuiltinType::Kind::Short:
+                                            numBits = 16;
+                                            break;
+                                        case clang::BuiltinType::Kind::Char32:
+                                        case clang::BuiltinType::Kind::UInt:
+                                        case clang::BuiltinType::Kind::Int:
+                                            numBits = 32;
+                                            break;
+                                        case clang::BuiltinType::Kind::ULong:
+                                        case clang::BuiltinType::Kind::Long:
+                                        case clang::BuiltinType::Kind::ULongLong:
+                                        case clang::BuiltinType::Kind::LongLong:
+                                            numBits = 64;
+                                            break;
+                                        default:
+                                            val = CPValue::getNAC();
+                                    }
+                                    if (val == nullptr) {
+                                        auto constantValue = subExprValue->getConstantValue();
+                                        uint64_t extValue = isSigned ? constantValue.getSExtValue() 
+                                                            : constantValue.getZExtValue();
+                                        val = CPValue::makeConstant(
+                                                llvm::APSInt(llvm::APInt(numBits, extValue, isSigned), !isSigned));
+                                    }
+                                }
+                            } else  {
+                                val = subExprValue;
+                            }
+                            break;
+                        }
+                        default:
+                            val = CPValue::getNAC();
+                    }
+                } else if (auto* declRef = llvm::dyn_cast<clang::DeclRefExpr>(expr)) {
                     if (auto* varDecl = llvm::dyn_cast<clang::VarDecl>(declRef->getDecl()))
                         if (checkClangVarDeclType(varDecl))
-                            return inFact->get(mapVars.at(varDecl));
-                    return CPValue::getNAC();
-                }
-                if (auto* unaryOp = llvm::dyn_cast<clang::UnaryOperator>(expr)) {
+                            val = inFact->get(mapVars.at(varDecl));
+                    if (val == nullptr) {
+                        val = CPValue::getNAC();
+                    }
+                } else if (auto* unaryOp = llvm::dyn_cast<clang::UnaryOperator>(expr)) {
                     auto subExpr = unaryOp->getSubExpr();
                     switch (unaryOp->getOpcode()) {
                         case clang::UnaryOperatorKind::UO_Plus:
-                            return calculateExprCPValue(subExpr, inFact);
+                            val = calculateAndUpdateExprCPValue(subExpr, inFact, outFact);
+                            break;
                         case clang::UnaryOperatorKind::UO_Minus: {
-                            auto subExprValue = calculateExprCPValue(subExpr, inFact);
-                            if (subExprValue->isNAC()) {
-                                return CPValue::getNAC();
-                            } else if (subExprValue->isConstant()) {
-                                return CPValue::makeConstant(-subExprValue->getConstantValue());
+                            auto subExprValue = calculateAndUpdateExprCPValue(subExpr, inFact, outFact);
+                            if (subExprValue->isConstant()) {
+                                val = CPValue::makeConstant(-subExprValue->getConstantValue());
                             } else {
-                                return CPValue::getUndef();
+                                val = subExprValue;
                             }
+                            break;
                         }
                         default:
-                            return CPValue::getNAC();
+                            if (unaryOp->isIncrementDecrementOp()) {
+                                auto subExprValue = calculateAndUpdateExprCPValue(subExpr, inFact, outFact);
+                                std::shared_ptr<CPValue> exprDecOrIncValue;
+                                if (subExprValue->isConstant()) {
+                                    auto constantValue = subExprValue->getConstantValue();
+                                    auto newValue = llvm::APSInt(constantValue);
+                                    if (unaryOp->isIncrementOp()) {
+                                        exprDecOrIncValue = CPValue::makeConstant(++newValue);
+                                    } else {
+                                        exprDecOrIncValue = CPValue::makeConstant(--newValue);
+                                    }
+                                } else {
+                                    exprDecOrIncValue = subExprValue;
+                                }
+                                if (auto var = getVarFromExpr(subExpr)) {
+                                    outFact->update(var, exprDecOrIncValue);
+                                }
+                                if(unaryOp->isPostfix()) {
+                                    val = subExprValue;
+                                } else {
+                                    val = exprDecOrIncValue;
+                                }
+                            } else {
+                                val = CPValue::getNAC();
+                            }
                     }
-                }
-                if (auto* binaryOperator = llvm::dyn_cast<clang::BinaryOperator>(expr)) {
+                } else if (auto* binaryOperator = llvm::dyn_cast<clang::BinaryOperator>(expr)) {
                     auto lhs = binaryOperator->getLHS();
                     auto rhs = binaryOperator->getRHS();
-                    auto rhsValue = calculateExprCPValue(rhs, inFact);
+                    auto rhsValue = calculateAndUpdateExprCPValue(rhs, inFact, outFact);
                     if (binaryOperator->getOpcode() == clang::BinaryOperatorKind::BO_Assign) {
-                        return rhsValue;
-                    }
-                    auto lhsValue = calculateExprCPValue(lhs, inFact);
-                    if (lhsValue->isNAC() || rhsValue->isNAC()) {
-                        if ((binaryOperator->getOpcode() == clang::BinaryOperatorKind::BO_Div 
-                                || binaryOperator->getOpcode() == clang::BinaryOperatorKind::BO_DivAssign
-                                || binaryOperator->getOpcode() == clang::BinaryOperatorKind::BO_Rem
-                                || binaryOperator->getOpcode() == clang::BinaryOperatorKind::BO_RemAssign)
-                            && rhsValue->isConstant() && rhsValue->getConstantValue().isZero()) {
-                            return CPValue::getUndef();
+                        if (auto var = getVarFromExpr(lhs)) {
+                            outFact->update(var, rhsValue);
+                        }
+                        val = rhsValue;
+                    } else {
+                        auto lhsValue = calculateAndUpdateExprCPValue(lhs, inFact, outFact);
+                        
+                        if (lhsValue->isNAC() || rhsValue->isNAC()) {
+                            switch (binaryOperator->getOpcode()) {
+                                case clang::BinaryOperatorKind::BO_Div:
+                                case clang::BinaryOperatorKind::BO_DivAssign:
+                                case clang::BinaryOperatorKind::BO_Rem:
+                                case clang::BinaryOperatorKind::BO_RemAssign:
+                                    if(rhsValue->isConstant() && rhsValue->getConstantValue().isZero()) {
+                                        val = CPValue::getUndef();
+                                    } else {
+                                        val = CPValue::getNAC();
+                                    }
+                                    break;
+                                default:
+                                    val = CPValue::getNAC();
+                            }
+                        } else if (lhsValue->isConstant() && rhsValue->isConstant()) {
+                            auto lhsConstant = lhsValue->getConstantValue();
+                            auto rhsConstant = rhsValue->getConstantValue();
+                            switch (binaryOperator->getOpcode()) {
+                                case clang::BinaryOperatorKind::BO_Add:
+                                case clang::BinaryOperatorKind::BO_AddAssign:
+                                    val = CPValue::makeConstant(lhsConstant + rhsConstant);
+                                    break;
+                                case clang::BinaryOperatorKind::BO_Sub:
+                                case clang::BinaryOperatorKind::BO_SubAssign:
+                                    val = CPValue::makeConstant(lhsConstant - rhsConstant);
+                                    break;
+                                case clang::BinaryOperatorKind::BO_Mul:
+                                case clang::BinaryOperatorKind::BO_MulAssign:
+                                    val = CPValue::makeConstant(lhsConstant * rhsConstant);
+                                    break;
+                                case clang::BinaryOperatorKind::BO_Div:
+                                case clang::BinaryOperatorKind::BO_DivAssign:
+                                    if (rhsConstant.isZero()) {
+                                        val = CPValue::getUndef();
+                                    } else {
+                                        val = CPValue::makeConstant(lhsConstant / rhsConstant);
+                                    }
+                                    break;
+                                case clang::BinaryOperatorKind::BO_Rem:
+                                case clang::BinaryOperatorKind::BO_RemAssign:
+                                    if (rhsConstant.isZero()) {
+                                        val = CPValue::getUndef();
+                                    } else {
+                                        val = CPValue::makeConstant(lhsConstant % rhsConstant);
+                                    }
+                                    break;
+                                case clang::BinaryOperatorKind::BO_And:
+                                case clang::BinaryOperatorKind::BO_AndAssign:
+                                    val = CPValue::makeConstant(lhsConstant & rhsConstant);
+                                    break;
+                                case clang::BinaryOperatorKind::BO_Or:
+                                case clang::BinaryOperatorKind::BO_OrAssign:
+                                    val = CPValue::makeConstant(lhsConstant | rhsConstant);
+                                    break;
+                                case clang::BinaryOperatorKind::BO_Xor:
+                                case clang::BinaryOperatorKind::BO_XorAssign:
+                                    val = CPValue::makeConstant(lhsConstant ^ rhsConstant);
+                                    break;
+                                case clang::BinaryOperatorKind::BO_Shl:
+                                case clang::BinaryOperatorKind::BO_ShlAssign:
+                                    val = CPValue::makeConstant(lhsConstant << rhsConstant.getLimitedValue());
+                                    break;
+                                case clang::BinaryOperatorKind::BO_Shr:
+                                case clang::BinaryOperatorKind::BO_ShrAssign:
+                                    val = CPValue::makeConstant(lhsConstant >> rhsConstant.getLimitedValue());
+                                    break;
+                                default:
+                                    val = CPValue::getNAC();
+                                    break;
+                            }
                         } else {
-                            return CPValue::getNAC();
+                            val = CPValue::getUndef();
                         }
-                    } else if (lhsValue->isConstant() && rhsValue->isConstant()) {
-                        auto lhsConstant = lhsValue->getConstantValue();
-                        auto rhsConstant = rhsValue->getConstantValue();
-                        switch (binaryOperator->getOpcode()) {
-                            case clang::BinaryOperatorKind::BO_Add:
-                            case clang::BinaryOperatorKind::BO_AddAssign:
-                                return CPValue::makeConstant(lhsConstant + rhsConstant);
-                            case clang::BinaryOperatorKind::BO_Sub:
-                            case clang::BinaryOperatorKind::BO_SubAssign:
-                                return CPValue::makeConstant(lhsConstant - rhsConstant);
-                            case clang::BinaryOperatorKind::BO_Mul:
-                            case clang::BinaryOperatorKind::BO_MulAssign:
-                                return CPValue::makeConstant(lhsConstant * rhsConstant);
-                            case clang::BinaryOperatorKind::BO_Div:
-                            case clang::BinaryOperatorKind::BO_DivAssign:
-                                if (rhsConstant.isZero()) {
-                                    return CPValue::getUndef();
-                                } else {
-                                    return CPValue::makeConstant(lhsConstant / rhsConstant);
-                                }
-                            case clang::BinaryOperatorKind::BO_Rem:
-                            case clang::BinaryOperatorKind::BO_RemAssign:
-                                if (rhsConstant.isZero()) {
-                                    return CPValue::getUndef();
-                                } else {
-                                    return CPValue::makeConstant(lhsConstant % rhsConstant);
-                                }
-                            case clang::BinaryOperatorKind::BO_And:
-                            case clang::BinaryOperatorKind::BO_AndAssign:
-                                return CPValue::makeConstant(lhsConstant & rhsConstant);
-                            case clang::BinaryOperatorKind::BO_Or:
-                            case clang::BinaryOperatorKind::BO_OrAssign:
-                                return CPValue::makeConstant(lhsConstant | rhsConstant);
-                            case clang::BinaryOperatorKind::BO_Xor:
-                            case clang::BinaryOperatorKind::BO_XorAssign:
-                                return CPValue::makeConstant(lhsConstant ^ rhsConstant);
-                            case clang::BinaryOperatorKind::BO_Shl:
-                            case clang::BinaryOperatorKind::BO_ShlAssign:
-                                return CPValue::makeConstant(lhsConstant << rhsConstant.getLimitedValue());
-                            case clang::BinaryOperatorKind::BO_Shr:
-                            case clang::BinaryOperatorKind::BO_ShrAssign:
-                                return CPValue::makeConstant(lhsConstant >> rhsConstant.getLimitedValue());
-                            default:
-                                return CPValue::getNAC();
+                        if (OpcodeIsAssign(binaryOperator->getOpcode())) {
+                            if (auto var = getVarFromExpr(lhs)) {
+                                outFact->update(var, val);
+                            }
                         }
                     }
-                    return CPValue::getUndef();
+                } else if (auto *arraySubscriptExpr = llvm::dyn_cast<clang::ArraySubscriptExpr>(expr)) {
+                    auto base = arraySubscriptExpr->getBase();
+                    auto index = arraySubscriptExpr->getIdx();
+                    calculateAndUpdateExprCPValue(base, inFact, outFact);
+                    calculateAndUpdateExprCPValue(index, inFact, outFact);
+                    val = CPValue::getNAC();
+                } else if (auto* conditionalOperator = llvm::dyn_cast<clang::ConditionalOperator>(expr)) {
+                    auto cond = conditionalOperator->getCond();
+                    auto trueExpr = conditionalOperator->getTrueExpr();
+                    auto falseExpr = conditionalOperator->getFalseExpr();
+                    calculateAndUpdateExprCPValue(cond, inFact, outFact);
+                    calculateAndUpdateExprCPValue(trueExpr, inFact, outFact);
+                    calculateAndUpdateExprCPValue(falseExpr, inFact, outFact);
+                    val = CPValue::getNAC();
+                } else if(auto* callExpr = llvm::dyn_cast<clang::CallExpr>(expr)) {
+                    auto callee = callExpr->getCallee();
+                    calculateAndUpdateExprCPValue(callee, inFact, outFact);
+                    for(auto arg : callExpr->arguments()) {
+                        calculateAndUpdateExprCPValue(arg, inFact, outFact);
+                    }
+                    val = CPValue::getNAC();
+                } else {
+                    val = CPValue::getNAC();
                 }
-                return CPValue::getNAC();
+                
+                if (exprValues) {
+                    exprValues->insert_or_assign(expr, val);
+                }
+                return val;
             }
         };
 
-        return std::make_unique<Analysis>(cfg);
+        return std::make_unique<Analysis>(cfg, exprValues);
     }
 
 }
