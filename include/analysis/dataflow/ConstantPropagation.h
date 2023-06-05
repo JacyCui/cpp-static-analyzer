@@ -130,9 +130,15 @@ namespace analyzer::analysis::dataflow {
     
         /**
          * @brief constructor for constant propagation result
-         * @param exprValues the map from clang expr to constant propagation value
          */
-        explicit CPResult(std::shared_ptr<std::unordered_map<const clang::Expr*, std::shared_ptr<CPValue>>> exprValues);
+        explicit CPResult();
+
+        /**
+         * @brief update the constant propagation value of a given clang expr
+         * @param expr the clang expr to be updated
+         * @param value the constant propagation value to be bound to the clang expr
+         */
+        void updateExprValue(const clang::Expr* expr, const std::shared_ptr<CPValue>& value);
 
         /**
          * @brief get the constant propagation value of a given clang expr
@@ -143,7 +149,8 @@ namespace analyzer::analysis::dataflow {
         [[nodiscard]] std::shared_ptr<CPValue> getExprValue(const clang::Expr* expr) const;
 
     private:
-        std::shared_ptr<std::unordered_map<const clang::Expr*, std::shared_ptr<CPValue>>> exprValues;
+
+        std::unordered_map<const clang::Expr*, std::shared_ptr<CPValue>> exprValues;
     };
 
     /**

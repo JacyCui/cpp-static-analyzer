@@ -19,7 +19,7 @@ protected:
     
 public:
     ConstPropagationTestFixture() {
-        al::World::initialize("resources/dataflow/constPropagation");
+        al::World::initialize("resources/dataflow/ConstPropagation");
         const al::World& world = al::World::get();
         dummy = world.getMethodBySignature("int ConstPropagation::dummy()")->getIR();
         typeCast = world.getMethodBySignature("void ConstPropagation::typeCast()")->getIR();
