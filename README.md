@@ -1,6 +1,6 @@
 # A Simple CPP Static Analysis Framework
 
-> Copyright (C) 2022 Jiacai Cui <201220014@smail.nju.edu.cn>
+> Copyright (C) 2023 Jiacai Cui <201220014@smail.nju.edu.cn>
 
 ## Introduction
 
@@ -96,14 +96,14 @@ After compiling, **in the project root directory**, run
 ./build/tests/tests
 ```
 
-And then, you should see something like below, which means the **513** 
-assertions are passed.
+And then, you should see something like below, which means the **597** 
+testing assertions are passed.
 
 ```shell
 # a lot of log information here ...
 ===============================================================================
-[doctest] test cases:  23 |  23 passed | 0 failed | 0 skipped
-[doctest] assertions: 513 | 513 passed | 0 failed |
+[doctest] test cases:  32 |  32 passed | 0 failed | 0 skipped
+[doctest] assertions: 597 | 597 passed | 0 failed |
 [doctest] Status: SUCCESS!
 ```
 
