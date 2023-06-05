@@ -119,8 +119,7 @@ namespace analyzer::analysis::dataflow::solver {
             initialize(const std::unique_ptr<DataflowAnalysis<Fact>>& dataflowAnalysis) const
         {
             std::shared_ptr<graph::CFG> cfg = dataflowAnalysis->getCFG();
-            std::shared_ptr<fact::DataflowResult<Fact>> result =
-                    std::make_shared<fact::DataflowResult<Fact>>();
+            std::shared_ptr<fact::DataflowResult<Fact>> result = dataflowAnalysis->getResult();
             if (dataflowAnalysis->isForward()) {
                 this->initializeForward(dataflowAnalysis, result);
             } else {
