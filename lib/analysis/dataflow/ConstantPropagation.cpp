@@ -74,16 +74,17 @@ namespace analyzer::analysis::dataflow {
 
     //// ============== CPResult ============== ////
 
-    CPResult::CPResult(std::shared_ptr<std::unordered_map<const clang::Expr*, std::shared_ptr<CPValue>>> exprValues)
-        : exprValues(std::move(exprValues))
-    {
+    CPResult::CPResult() = default;
 
+    void CPResult::updateExprValue(const clang::Expr* expr, const std::shared_ptr<CPValue>& value)
+    {
+        exprValues[expr] = value;
     }
 
     std::shared_ptr<CPValue> CPResult::getExprValue(const clang::Expr* expr) const
     {
-        auto it = exprValues->find(expr);
-        if (it != exprValues->end()) {
+        auto it = exprValues.find(expr);
+        if (it != exprValues.end()) {
             return it->second;
         }
         return nullptr;
@@ -169,10 +170,8 @@ namespace analyzer::analysis::dataflow {
                 return !out->equalsTo(oldOut);
             }
 
-            explicit Analysis(
-                    const std::shared_ptr<graph::CFG>& myCFG,
-                    std::shared_ptr<std::unordered_map<const clang::Expr*, std::shared_ptr<CPValue>>> exprValues)
-                : AbstractDataflowAnalysis<CPFact>(myCFG), exprValues(std::move(exprValues))
+            explicit Analysis(const std::shared_ptr<graph::CFG>& myCFG)
+                : AbstractDataflowAnalysis<CPFact>(myCFG), result(std::make_shared<CPResult>())
             {
                 auto vars = myCFG->getIR()->getVars();
                 for (const std::shared_ptr<ir::Var>& var : vars) {
@@ -184,9 +183,11 @@ namespace analyzer::analysis::dataflow {
             }
         private:
 
-            std::shared_ptr<std::unordered_map<const clang::Expr*, std::shared_ptr<CPValue>>> exprValues;
+            std::shared_ptr<CPResult> result;
 
             std::unordered_map<const clang::VarDecl *, std::shared_ptr<ir::Var>> mapVars;
+
+            std::unordered_map<const clang::Expr*, std::shared_ptr<CPValue>> exprValues;
 
             static bool checkClangVarDeclType(const clang::VarDecl *varDecl)
             {
@@ -468,23 +469,19 @@ namespace analyzer::analysis::dataflow {
                     val = CPValue::getNAC();
                 }
                 
-                if (exprValues) {
-                    exprValues->insert_or_assign(expr, val);
-                }
+                result->updateExprValue(expr, val);
                 return val;
             }
 
             [[nodiscard]] std::shared_ptr<fact::DataflowResult<CPFact>>
                 getResult() const override
             {
-                return std::make_shared<CPResult>(exprValues);
+                return result;
             }
 
         };
 
-        auto exprValues = std::make_shared<std::unordered_map<const clang::Expr*, std::shared_ptr<CPValue>>>();
-
-        return std::make_unique<Analysis>(cfg, exprValues);
+        return std::make_unique<Analysis>(cfg);
     }
 
 }
