@@ -301,6 +301,8 @@ namespace analyzer::analysis::dataflow {
                                         val = CPValue::makeConstant(
                                                 llvm::APSInt(llvm::APInt(numBits, extValue, isSigned), !isSigned));
                                     }
+                                } else {
+                                    val = CPValue::getNAC();
                                 }
                             } else  {
                                 val = subExprValue;
@@ -367,10 +369,11 @@ namespace analyzer::analysis::dataflow {
                     }
                 } else if (auto* binaryOperator = llvm::dyn_cast<clang::BinaryOperator>(expr)) {
                     clang::Expr* lhs = binaryOperator->getLHS();
+                    clang::Expr* rhs = binaryOperator->getRHS();
                     std::shared_ptr<CPValue> lhsValue =
                             calculateAndUpdateExprCPValue(lhs, inFact, outFact);
                     std::shared_ptr<CPValue> rhsValue =
-                            calculateAndUpdateExprCPValue(binaryOperator->getRHS(), inFact, outFact);
+                            calculateAndUpdateExprCPValue(rhs, inFact, outFact);
                     if (binaryOperator->getOpcode() == clang::BinaryOperatorKind::BO_Assign) {
                         if (auto var = getVarFromExpr(lhs)) {
                             outFact->update(var, rhsValue);
@@ -437,13 +440,25 @@ namespace analyzer::analysis::dataflow {
                                     val = CPValue::makeConstant(lhsConstant ^ rhsConstant);
                                     break;
                                 case clang::BinaryOperatorKind::BO_Shl:
-                                case clang::BinaryOperatorKind::BO_ShlAssign:
-                                    val = CPValue::makeConstant(lhsConstant << rhsConstant.getLimitedValue());
+                                case clang::BinaryOperatorKind::BO_ShlAssign: {
+                                    unsigned int shiftAmount = rhsConstant.getLimitedValue();
+                                    if (shiftAmount >= lhsConstant.getBitWidth()) {
+                                        val = CPValue::getNAC();
+                                    } else {
+                                        val = CPValue::makeConstant(lhsConstant << shiftAmount);
+                                    }
                                     break;
+                                }
                                 case clang::BinaryOperatorKind::BO_Shr:
-                                case clang::BinaryOperatorKind::BO_ShrAssign:
-                                    val = CPValue::makeConstant(lhsConstant >> rhsConstant.getLimitedValue());
+                                case clang::BinaryOperatorKind::BO_ShrAssign: {
+                                    unsigned int shiftAmount = rhsConstant.getLimitedValue();
+                                    if (shiftAmount >= lhsConstant.getBitWidth()) {
+                                        val = CPValue::getNAC();
+                                    } else {
+                                        val = CPValue::makeConstant(lhsConstant >> shiftAmount);
+                                    }
                                     break;
+                                }
                                 default:
                                     val = CPValue::getNAC();
                                     break;
@@ -475,7 +490,7 @@ namespace analyzer::analysis::dataflow {
                 } else {
                     val = CPValue::getNAC();
                 }
-                
+
                 result->updateExprValue(expr, val);
                 return val;
             }
