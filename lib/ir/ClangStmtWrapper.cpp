@@ -64,13 +64,15 @@ namespace analyzer::ir {
                     return true;
                 }
                 const auto* parentStmt = parents[0].get<clang::Stmt>();
-                const auto* implicitCast = clang::dyn_cast<clang::ImplicitCastExpr>(parentStmt);
-                if (implicitCast) {
-                    if (implicitCast->getCastKind() == clang::CK_LValueToRValue) {
-                        if (uses.find(var) == uses.end()) {
-                            uses.emplace(var);
+                if (parentStmt) {
+                    const auto *implicitCast = clang::dyn_cast<clang::ImplicitCastExpr>(parentStmt);
+                    if (implicitCast) {
+                        if (implicitCast->getCastKind() == clang::CK_LValueToRValue) {
+                            if (uses.find(var) == uses.end()) {
+                                uses.emplace(var);
+                            }
+                            return true;
                         }
-                        return true;
                     }
                 }
                 if (defs.find(var) == defs.end()) {

@@ -45,6 +45,7 @@ namespace analyzer {
          * @param sourceDir the directory path of all source files
          * @param includeDir the directory path of all
          * @param std language standard, e.g. c++98, c++11, c99
+         * @param optArgs optional compilation arguments, such as -D__MACRO__ etc.
          */
         static void initialize(const std::string& sourceDir, const std::string& includeDir="",
                                const std::string& std=std::string("c++98"),
