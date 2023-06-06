@@ -34,7 +34,7 @@ public:
         analysisConfig = std::make_unique<cf::DefaultAnalysisConfig>("constant propagation analysis");
         cp = std::make_unique<df::ConstantPropagation>(analysisConfig);
 
-        CHECK(analysisConfig == nullptr);
+        CHECK_FALSE(analysisConfig);
     }
 };
 
@@ -70,10 +70,10 @@ TEST_CASE_FIXTURE(ConstPropagationTestFixture, "testConstPropagationCaseDummy"
 
     CHECK(result->getOutFact(s1)->get(x)->isUndef());
     CHECK(result->getOutFact(s2)->get(x)->isUndef());
-    auto s3_x = result->getOutFact(s3)->get(x);
+    std::shared_ptr<df::CPValue> s3_x = result->getOutFact(s3)->get(x);
     CHECK(s3_x->isConstant());
     CHECK_EQ(s3_x->getConstantValue(), 1);
-    auto s3_y = result->getOutFact(s4)->get(y);
+    std::shared_ptr<df::CPValue> s3_y = result->getOutFact(s4)->get(y);
     CHECK(s3_y->isConstant());
     CHECK_EQ(s3_y->getConstantValue(), 1);
 
@@ -106,7 +106,7 @@ TEST_CASE_FIXTURE(ConstPropagationTestFixture, "testConstPropagationTypeCase"
     std::shared_ptr<air::Var> z = varMap.at("z");
 
     std::shared_ptr<dfact::DataflowResult<df::CPFact>> result = cp->analyze(typeCast);
-    auto fact = result->getInFact(exit);
+    std::shared_ptr<df::CPFact> fact = result->getInFact(exit);
 
     CHECK(fact->get(a)->isConstant());
     CHECK_EQ(fact->get(a)->getConstantValue(), (char)'a');
@@ -149,7 +149,7 @@ TEST_CASE_FIXTURE(ConstPropagationTestFixture, "testConstPropagationCaseIfElse"
     std::shared_ptr<air::Var> v = varMap.at("v");
 
     std::shared_ptr<dfact::DataflowResult<df::CPFact>> result = cp->analyze(ifElse);
-    auto fact = result->getInFact(exit);
+    std::shared_ptr<df::CPFact> fact = result->getInFact(exit);
 
     CHECK(fact->get(n)->isNAC());
     CHECK(fact->get(x)->isNAC());
@@ -203,7 +203,7 @@ TEST_CASE_FIXTURE(ConstPropagationTestFixture, "testConstPropagationCaseBinaryOp
     std::shared_ptr<dfact::DataflowResult<df::CPFact>> result = cp->analyze(binaryOp);
     CHECK(result->getOutFact(cfg->getEntry())->get(n)->isNAC());
 
-    auto fact = result->getInFact(exit);
+    std::shared_ptr<df::CPFact> fact = result->getInFact(exit);
     CHECK(fact->get(x)->isConstant());
     CHECK_EQ(fact->get(x)->getConstantValue(), 15);
     CHECK(fact->get(y)->isConstant());
@@ -262,7 +262,7 @@ TEST_CASE_FIXTURE(ConstPropagationTestFixture, "testConstPropagationCaseLoop"
 
     std::shared_ptr<dfact::DataflowResult<df::CPFact>> result = cp->analyze(loop);
 
-    auto fact = result->getInFact(exit);
+    std::shared_ptr<df::CPFact> fact = result->getInFact(exit);
     CHECK(fact->get(a)->isNAC());
     CHECK(fact->get(c)->isConstant());
     CHECK_EQ(fact->get(c)->getConstantValue(), 2);
@@ -296,7 +296,7 @@ TEST_CASE_FIXTURE(ConstPropagationTestFixture, "testConstPropagationIncDec"
 
     std::shared_ptr<dfact::DataflowResult<df::CPFact>> result = cp->analyze(incDec);
 
-    auto fact = result->getInFact(exit);
+    std::shared_ptr<df::CPFact> fact = result->getInFact(exit);
     CHECK(fact->get(a)->isConstant());
     CHECK_EQ(fact->get(a)->getConstantValue(), 1);
     CHECK(fact->get(b)->isConstant());
@@ -330,6 +330,7 @@ TEST_CASE_FIXTURE(ConstPropagationTestFixture, "testConstPropagationArray"
     std::shared_ptr<df::CPResult> result = std::dynamic_pointer_cast<df::CPResult>(df_result);
 
     std::shared_ptr<air::Stmt> stmt = stmtMap.at("a[i][j]");
+
     /*
     `-ImplicitCastExpr 0x14580cda8 <col:16, col:22> 'int' <LValueToRValue>
     `-ArraySubscriptExpr 0x14580cd88 <col:16, col:22> 'int' lvalue
@@ -344,28 +345,28 @@ TEST_CASE_FIXTURE(ConstPropagationTestFixture, "testConstPropagationArray"
     */
 
     const clang::Stmt *clangStmt = stmt->getClangStmt();
-    auto *implicitCastExpr = clang::dyn_cast<clang::ImplicitCastExpr>(clangStmt);
-    auto *arraySubscriptExpr = clang::dyn_cast<clang::ArraySubscriptExpr>(implicitCastExpr->getSubExpr());
+    const auto* implicitCastExpr = clang::dyn_cast<clang::ImplicitCastExpr>(clangStmt);
+    const auto* arraySubscriptExpr = clang::dyn_cast<clang::ArraySubscriptExpr>(implicitCastExpr->getSubExpr());
     // check type: int[2][2]
-    auto *implicitCastExpr1 = clang::dyn_cast<clang::ImplicitCastExpr>(arraySubscriptExpr->getBase());
-    auto *arraySubscriptExpr1 = clang::dyn_cast<clang::ArraySubscriptExpr>(implicitCastExpr1->getSubExpr());
-    auto *implicitCastExpr2 = clang::dyn_cast<clang::ImplicitCastExpr>(arraySubscriptExpr1->getBase());
-    auto *declRefExpr = clang::dyn_cast<clang::DeclRefExpr>(implicitCastExpr2->getSubExpr());
-    auto *arrayType2 = clang::dyn_cast<clang::ConstantArrayType>(declRefExpr->getType());
-    CHECK(arrayType2 != nullptr);
+    const auto* implicitCastExpr1 = clang::dyn_cast<clang::ImplicitCastExpr>(arraySubscriptExpr->getBase());
+    const auto* arraySubscriptExpr1 = clang::dyn_cast<clang::ArraySubscriptExpr>(implicitCastExpr1->getSubExpr());
+    const auto* implicitCastExpr2 = clang::dyn_cast<clang::ImplicitCastExpr>(arraySubscriptExpr1->getBase());
+    const auto* declRefExpr = clang::dyn_cast<clang::DeclRefExpr>(implicitCastExpr2->getSubExpr());
+    const auto* arrayType2 = clang::dyn_cast<clang::ConstantArrayType>(declRefExpr->getType());
+    CHECK(arrayType2);
     CHECK_EQ(arrayType2->getSize(), 2);
-    auto *implicitCastExpr_i = clang::dyn_cast<clang::ImplicitCastExpr>(arraySubscriptExpr1->getIdx());
-    auto i_value = result->getExprValue(implicitCastExpr_i);
-    CHECK(i_value != nullptr);
+    const auto* implicitCastExpr_i = clang::dyn_cast<clang::ImplicitCastExpr>(arraySubscriptExpr1->getIdx());
+    std::shared_ptr<df::CPValue> i_value = result->getExprValue(implicitCastExpr_i);
+    CHECK(i_value);
     CHECK(i_value->isConstant());
     CHECK_EQ(i_value->getConstantValue(), 2);
     // check type: int[2]
-    auto *arrayType1 = clang::dyn_cast<clang::ConstantArrayType>(arraySubscriptExpr1->getType());
-    CHECK(arrayType1 != nullptr);
+    const auto* arrayType1 = clang::dyn_cast<clang::ConstantArrayType>(arraySubscriptExpr1->getType());
+    CHECK(arrayType1);
     CHECK_EQ(arrayType1->getSize(), 2);
-    auto *implicitCastExpr_j = clang::dyn_cast<clang::ImplicitCastExpr>(arraySubscriptExpr->getIdx());
-    auto j_value = result->getExprValue(implicitCastExpr_j);
-    CHECK(j_value != nullptr);
+    const auto* implicitCastExpr_j = clang::dyn_cast<clang::ImplicitCastExpr>(arraySubscriptExpr->getIdx());
+    std::shared_ptr<df::CPValue> j_value = result->getExprValue(implicitCastExpr_j);
+    CHECK(j_value);
     CHECK(j_value->isConstant());
     CHECK_EQ(j_value->getConstantValue(), 3);
 
@@ -381,28 +382,29 @@ TEST_CASE_FIXTURE(ConstPropagationTestFixture, "testConstPropagationCall"
     std::shared_ptr<graph::CFG> cfg = call->getCFG();
     std::unordered_map<std::string, std::shared_ptr<air::Stmt>> stmtMap;
     for (const std::shared_ptr<air::Stmt>& s : call->getStmts()) {
-    al::World::getLogger().Debug(s->str());
-    stmtMap.emplace(s->str(), s);
+        al::World::getLogger().Debug(s->str());
+        stmtMap.emplace(s->str(), s);
     }
 
     std::unordered_map<std::string, std::shared_ptr<air::Var>> varMap;
     for (const std::shared_ptr<air::Var>& v : call->getVars()) {
-    varMap.emplace(v->getName(), v);
+        varMap.emplace(v->getName(), v);
     }
 
     std::shared_ptr<dfact::DataflowResult<df::CPFact>> df_result = cp->analyze(call);
     std::shared_ptr<df::CPResult> result = std::dynamic_pointer_cast<df::CPResult>(df_result);
 
     std::shared_ptr<air::Stmt> stmt = stmtMap.at("foo(1 / zero)");
-    auto *clangStmt = stmt->getClangStmt();
-    auto *callExpr = clang::dyn_cast<clang::CallExpr>(clangStmt);
-    auto *arg0 = callExpr->getArg(0);
+    const clang::Stmt* clangStmt = stmt->getClangStmt();
+    const auto* callExpr = clang::dyn_cast<clang::CallExpr>(clangStmt);
+    const clang::Expr* arg0 = callExpr->getArg(0);
 
-    auto arg0_value = result->getExprValue(arg0);
-    CHECK(arg0_value != nullptr);
+    std::shared_ptr<df::CPValue> arg0_value = result->getExprValue(arg0);
+    CHECK(arg0_value);
     CHECK(arg0_value->isUndef());
 
     al::World::getLogger().Success("Finish constant propagation example call ...");
+
 }
 
 TEST_SUITE_END();
