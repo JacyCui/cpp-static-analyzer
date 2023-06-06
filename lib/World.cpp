@@ -88,7 +88,7 @@ namespace analyzer {
             uint64_t t2 = llvm::errs().tell();
             if (t1 != t2) {
                 logger.Error("Detect syntax or semantic error in source file: " + filename);
-                throw std::runtime_error("Detect syntax or semantic error in source file: " + filename);
+                // throw std::runtime_error("Detect syntax or semantic error in source file: " + filename);
             }
             astList.emplace_back(std::move(p));
         }
@@ -106,20 +106,33 @@ namespace analyzer {
 
             class FunctionRegister: public mt::MatchFinder::MatchCallback {
             private:
+
+                const std::unique_ptr<clang::ASTUnit>& ast;
+
                 std::vector<const clang::FunctionDecl *> functions;
 
             public:
+
+                explicit FunctionRegister(const std::unique_ptr<clang::ASTUnit>& ast)
+                    : ast(ast)
+                {
+
+                }
+
                 void run(const mt::MatchFinder::MatchResult& Result) override {
                     if (const auto* fd = Result.Nodes.getNodeAs<clang::FunctionDecl>("function")) {
-                        if (fd->isThisDeclarationADefinition() && fd->hasBody() && !fd->isImplicit()) {
+                        if (!ast->getSourceManager().isInSystemHeader(fd->getLocation()) &&
+                            fd->isThisDeclarationADefinition() && fd->hasBody() && !fd->isImplicit()) {
                             functions.emplace_back(fd);
                         }
                     }
                 }
+
                 std::vector<const clang::FunctionDecl *> &getFunctions() {
                     return functions;
                 }
-            } functionRegister;
+
+            } functionRegister(ast);
 
             mt::DeclarationMatcher funcDelMatcher = mt::functionDecl().bind("function");
             mt::MatchFinder finder;

@@ -58,7 +58,7 @@ namespace analyzer::language {
 
     std::string CPPMethod::getContainingFilePath() const
     {
-        return astUnit->getMainFileName().str();
+        return astUnit->getSourceManager().getFilename(funcDecl->getLocation()).str();
     }
 
     std::size_t CPPMethod::getParamCount() const
