@@ -10,3 +10,9 @@ target_link_libraries(live-variable-analyzer
         libanalyzer
         )
 
+add_executable(constant-propagation-analyzer constant-propagation-analyzer.cpp)
+
+target_link_libraries(constant-propagation-analyzer
+        libanalyzer
+        )
+

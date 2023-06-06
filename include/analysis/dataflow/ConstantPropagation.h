@@ -69,10 +69,14 @@ namespace analyzer::analysis::dataflow {
         [[nodiscard]] bool isConstant() const;
 
         /**
-         * @brief get the constant value
          * @return the constant value
          */
         [[nodiscard]] const llvm::APSInt& getConstantValue() const;
+
+        /**
+         * @return the string representation of this constant propagation value
+         */
+        [[nodiscard]] std::string str() const;
 
         /**
          * @brief operator== for constant propagation value

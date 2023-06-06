@@ -52,6 +52,18 @@ namespace analyzer::analysis::dataflow {
         return constantValue;
     }
 
+    std::string CPValue::str() const
+    {
+        if (isNAC()) {
+            return "NAC (Not A Constant)";
+        }
+        if (isUndef()) {
+            return "Undefined";
+        }
+        return constantValue.isSigned() ? std::to_string(constantValue.getSExtValue())
+            : std::to_string(constantValue.getZExtValue());
+    }
+
     //// ============== CPFact ============== ////
 
     std::shared_ptr<CPValue> CPFact::get(const std::shared_ptr<ir::Var>& key) const
