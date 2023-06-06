@@ -4,7 +4,7 @@
 
 ## Introduction
 
-This is a simple cpp static analyzer developed during
+This is a simple cpp static analysis framework developed during
 a software engineering lab course of Nanjing University.
 
 The project is personal and distributed
