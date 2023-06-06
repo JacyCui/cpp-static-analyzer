@@ -52,7 +52,7 @@ int main(int argc, const char **argv)
         std::shared_ptr<dfact::DataflowResult<dfact::SetFact<air::Var>>> result =
                 lv->analyze(myIR);
 
-        al::World::getLogger().Info("-------------- Analysis Result -----------------");
+        al::World::getLogger().Info("-------------- Analysis Result of " + signature + " -----------------");
 
         for (const std::shared_ptr<air::Stmt>& stmt : myIR->getStmts()) {
             al::World::getLogger().Info("* " + fileName
