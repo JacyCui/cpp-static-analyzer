@@ -307,7 +307,7 @@ namespace analyzer::analysis::dataflow {
                     if (val == nullptr) {
                         val = CPValue::getNAC();
                     }
-                } else if (auto *parenExpr = llvm::dyn_cast<clang::ParenExpr>(expr)) {
+                } else if (auto* parenExpr = llvm::dyn_cast<clang::ParenExpr>(expr)) {
                     val = calculateAndUpdateExprCPValue(parenExpr->getSubExpr(), inFact, outFact);
                 } else if (auto* unaryOp = llvm::dyn_cast<clang::UnaryOperator>(expr)) {
                     clang::Expr* subExpr = unaryOp->getSubExpr();
@@ -355,6 +355,8 @@ namespace analyzer::analysis::dataflow {
                     }
                 } else if (auto* binaryOperator = llvm::dyn_cast<clang::BinaryOperator>(expr)) {
                     clang::Expr* lhs = binaryOperator->getLHS();
+                    std::shared_ptr<CPValue> lhsValue =
+                            calculateAndUpdateExprCPValue(lhs, inFact, outFact);
                     std::shared_ptr<CPValue> rhsValue =
                             calculateAndUpdateExprCPValue(binaryOperator->getRHS(), inFact, outFact);
                     if (binaryOperator->getOpcode() == clang::BinaryOperatorKind::BO_Assign) {
@@ -363,8 +365,6 @@ namespace analyzer::analysis::dataflow {
                         }
                         val = rhsValue;
                     } else {
-                        std::shared_ptr<CPValue> lhsValue =
-                                calculateAndUpdateExprCPValue(lhs, inFact, outFact);
                         if (lhsValue->isNAC() || rhsValue->isNAC()) {
                             switch (binaryOperator->getOpcode()) {
                                 case clang::BinaryOperatorKind::BO_Div:
