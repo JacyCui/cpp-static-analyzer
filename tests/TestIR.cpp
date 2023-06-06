@@ -9,7 +9,7 @@ namespace graph = al::analysis::graph;
 
 class IRTestFixture {
 protected:
-    std::shared_ptr<air::IR> ir1, ir2, ir3, ir4, ir5;
+    std::shared_ptr<air::IR> ir1, ir2, ir3, ir4, ir5, ir6;
 public:
     IRTestFixture() {
         al::World::initialize("resources/example02");
@@ -19,6 +19,7 @@ public:
         ir3 = world.getMethodBySignature("int fib(int)")->getIR();
         ir4 = world.getMethodBySignature("int factor(int)")->getIR();
         ir5 = world.getMethodBySignature("void test2(int, int, int, int, int)")->getIR();
+        ir6 = world.getMethodBySignature("void foo()")->getIR();
     }
 };
 
@@ -448,6 +449,20 @@ TEST_CASE_FIXTURE(IRTestFixture, "testGetCFG3"
     CHECK(cfg->hasEdge(s7, cfg->getExit()));
 
     al::World::getLogger().Success("Finish testing get the last method cfg ...");
+}
+
+TEST_CASE_FIXTURE(IRTestFixture, "testStdLib"
+    * doctest::description("testing using the standard lib")) {
+
+    al::World::getLogger().Progress("Testing using the standard lib ...");
+
+    std::unordered_map<std::string, std::shared_ptr<air::Stmt>> stmtMap;
+    for (const std::shared_ptr<air::Stmt>& s : ir6->getStmts()) {
+        al::World::getLogger().Debug(s->str());
+        stmtMap.emplace(s->str(), s);
+    }
+
+    al::World::getLogger().Success("Testing using the standard lib ...");
 }
 
 TEST_SUITE_END();

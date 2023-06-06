@@ -62,3 +62,9 @@ void test2(int a, int b, int c, int d, int e) {
     b = a - d;
 }
 
+#include <stdio.h>
+
+void foo() {
+    int a = 2;
+    printf("%d\n", a);
+}
