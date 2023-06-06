@@ -19,7 +19,7 @@ public:
         ir3 = world.getMethodBySignature("int fib(int)")->getIR();
         ir4 = world.getMethodBySignature("int factor(int)")->getIR();
         ir5 = world.getMethodBySignature("void test2(int, int, int, int, int)")->getIR();
-        ir6 = world.getMethodBySignature("void foo()")->getIR();
+        ir6 = world.getMethodBySignature("void Foo::foo()")->getIR();
     }
 };
 
