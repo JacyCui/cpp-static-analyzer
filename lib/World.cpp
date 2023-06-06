@@ -27,19 +27,23 @@ namespace analyzer {
         return *theWorld;
     }
 
-    void World::initialize(const std::string& sourceDir, const std::string& includeDir, const std::string& std)
+    void World::initialize(const std::string& sourceDir, const std::string& includeDir,
+                           const std::string& std, const std::vector<std::string>& optArgs)
     {
         if (theWorld != nullptr) {
             delete theWorld;
             theWorld = nullptr;
         }
-        if (includeDir.empty()) {
+        if (includeDir.empty() && std.empty()) {
+            theWorld = new World(loadSourceCodes(sourceDir), std::vector<std::string>());
+        } else if (includeDir.empty()) {
             theWorld = new World(loadSourceCodes(sourceDir),
                                  std::vector<std::string>{"-std=" + std});
         } else {
             theWorld = new World(loadSourceCodes(sourceDir),
                                  std::vector<std::string>{"-I" + includeDir, "-std=" + std});
         }
+        theWorld->args.insert(theWorld->args.end(), optArgs.begin(), optArgs.end());
         theWorld->build();
     }
 

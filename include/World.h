@@ -47,7 +47,8 @@ namespace analyzer {
          * @param std language standard, e.g. c++98, c++11, c99
          */
         static void initialize(const std::string& sourceDir, const std::string& includeDir="",
-                               const std::string& std=std::string("c++98"));
+                               const std::string& std=std::string("c++98"),
+                               const std::vector<std::string>& optArgs={});
 
         /**
          * @brief must be called after calling {@code initialize}
