@@ -440,13 +440,25 @@ namespace analyzer::analysis::dataflow {
                                     val = CPValue::makeConstant(lhsConstant ^ rhsConstant);
                                     break;
                                 case clang::BinaryOperatorKind::BO_Shl:
-                                case clang::BinaryOperatorKind::BO_ShlAssign:
-                                    val = CPValue::makeConstant(lhsConstant << rhsConstant.getLimitedValue());
+                                case clang::BinaryOperatorKind::BO_ShlAssign: {
+                                    unsigned int shiftAmount = rhsConstant.getLimitedValue();
+                                    if (shiftAmount >= lhsConstant.getBitWidth()) {
+                                        val = CPValue::getNAC();
+                                    } else {
+                                        val = CPValue::makeConstant(lhsConstant << shiftAmount);
+                                    }
                                     break;
+                                }
                                 case clang::BinaryOperatorKind::BO_Shr:
-                                case clang::BinaryOperatorKind::BO_ShrAssign:
-                                    val = CPValue::makeConstant(lhsConstant >> rhsConstant.getLimitedValue());
+                                case clang::BinaryOperatorKind::BO_ShrAssign: {
+                                    unsigned int shiftAmount = rhsConstant.getLimitedValue();
+                                    if (shiftAmount >= lhsConstant.getBitWidth()) {
+                                        val = CPValue::getNAC();
+                                    } else {
+                                        val = CPValue::makeConstant(lhsConstant >> shiftAmount);
+                                    }
                                     break;
+                                }
                                 default:
                                     val = CPValue::getNAC();
                                     break;
