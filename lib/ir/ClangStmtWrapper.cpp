@@ -74,6 +74,7 @@ namespace analyzer::ir {
                             return true;
                         }
                     }
+
                 }
                 if (defs.find(var) == defs.end()) {
                     defs.emplace(var);
@@ -83,14 +84,12 @@ namespace analyzer::ir {
 
             bool VisitUnaryOperator(clang::UnaryOperator* S)
             {
-                if (S->isIncrementDecrementOp()) {
-                    if (auto* declRef = clang::dyn_cast<clang::DeclRefExpr>(S->getSubExpr())) {
-                        if (auto* varDecl = clang::dyn_cast<clang::VarDecl>(declRef->getDecl())) {
-                            if (vars.find(varDecl) == vars.end()) {
-                                vars.emplace(varDecl, World::get().getVarBuilder()->buildVar(method, varDecl));
-                            }
-                            uses.emplace(vars.at(varDecl));
+                if (auto* declRef = clang::dyn_cast<clang::DeclRefExpr>(S->getSubExpr())) {
+                    if (auto* varDecl = clang::dyn_cast<clang::VarDecl>(declRef->getDecl())) {
+                        if (vars.find(varDecl) == vars.end()) {
+                            vars.emplace(varDecl, World::get().getVarBuilder()->buildVar(method, varDecl));
                         }
+                        uses.emplace(vars.at(varDecl));
                     }
                 }
                 return true;
@@ -109,9 +108,8 @@ namespace analyzer::ir {
                 return true;
             }
 
-        };
+        } stmtProcessor(varPool, uses, defs, method);
 
-        StmtProcessor stmtProcessor(varPool, uses, defs, method);
         stmtProcessor.TraverseStmt(const_cast<clang::Stmt*>(clangStmt));
 
         const clang::SourceManager& sourceManager = method.getASTUnit()->getSourceManager();
