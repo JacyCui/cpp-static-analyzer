@@ -96,14 +96,14 @@ After compiling, **in the project root directory**, run
 ./build/tests/tests
 ```
 
-And then, you should see something like below, which means the **597** 
+And then, you should see something like below, which means the **613** 
 testing assertions are passed.
 
 ```shell
 # a lot of log information here ...
 ===============================================================================
-[doctest] test cases:  32 |  32 passed | 0 failed | 0 skipped
-[doctest] assertions: 597 | 597 passed | 0 failed |
+[doctest] test cases:  34 |  34 passed | 0 failed | 0 skipped
+[doctest] assertions: 613 | 613 passed | 0 failed |
 [doctest] Status: SUCCESS!
 ```
 
