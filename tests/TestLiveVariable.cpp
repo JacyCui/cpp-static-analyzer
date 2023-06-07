@@ -12,7 +12,7 @@ namespace dfact = al::analysis::dataflow::fact;
 
 class LiveVarTestFixture {
 protected:
-    std::shared_ptr<air::IR> ir1, ir2, ir3, ir4;
+    std::shared_ptr<air::IR> ir1, ir2, ir3, ir4, ir5;
     std::unique_ptr<df::LiveVariable> lv;
 public:
     LiveVarTestFixture() {
@@ -22,6 +22,7 @@ public:
         ir2 = world.getMethodBySignature("int LiveVar::loop(int)")->getIR();
         ir3 = world.getMethodBySignature("int LiveVar::loopBranch(int, int, int)")->getIR();
         ir4 = world.getMethodBySignature("void LiveVar::branchLoop(int, _Bool)")->getIR();
+        ir5 = world.getMethodBySignature("void LiveVar::unaryOperator()")->getIR();
 
         std::unique_ptr<cf::AnalysisConfig> analysisConfig
                 = std::make_unique<cf::DefaultAnalysisConfig>("live variable analysis");
@@ -98,7 +99,7 @@ TEST_CASE_FIXTURE(LiveVarTestFixture, "testLiveVarCaseIfElse"
 }
 
 TEST_CASE_FIXTURE(LiveVarTestFixture, "testLiveVarCaseLoop"
-                                      * doctest::description("testing live variable example loop ...")) {
+    * doctest::description("testing live variable example loop ...")) {
 
     al::World::getLogger().Progress("Testing live variable example loop ...");
 
@@ -167,7 +168,7 @@ TEST_CASE_FIXTURE(LiveVarTestFixture, "testLiveVarCaseLoop"
 }
 
 TEST_CASE_FIXTURE(LiveVarTestFixture, "testLiveVarCaseLoopBranch"
-                                      * doctest::description("testing live variable example loopBranch ...")) {
+    * doctest::description("testing live variable example loopBranch ...")) {
 
     al::World::getLogger().Progress("Testing live variable example loopBranch ...");
 
@@ -243,7 +244,7 @@ TEST_CASE_FIXTURE(LiveVarTestFixture, "testLiveVarCaseLoopBranch"
 }
 
 TEST_CASE_FIXTURE(LiveVarTestFixture, "testLiveVarCaseBranchLoop"
-                                      * doctest::description("testing live variable example branchLoop ...")) {
+    * doctest::description("testing live variable example branchLoop ...")) {
 
     al::World::getLogger().Progress("Testing live variable example branchLoop ...");
 
@@ -345,6 +346,59 @@ TEST_CASE_FIXTURE(LiveVarTestFixture, "testLiveVarCaseBranchLoop"
             std::make_shared<dfact::SetFact<air::Var>>(std::unordered_set{v1, v2, v5})));
 
     al::World::getLogger().Success("Finish testing live variable example branchLoop ...");
+
+}
+
+TEST_CASE_FIXTURE(LiveVarTestFixture, "testLiveVarUnaryOperator"
+    * doctest::description("testing live variable example unaryOperator ...")) {
+
+    al::World::getLogger().Progress("Testing live variable example unaryOperator ...");
+
+    std::shared_ptr<graph::CFG> cfg = ir5->getCFG();
+    std::unordered_map<std::string, std::shared_ptr<air::Stmt>> stmtMap;
+    for (const std::shared_ptr<air::Stmt>& s : ir5->getStmts()) {
+        al::World::getLogger().Debug(s->str());
+        stmtMap.emplace(s->str(), s);
+    }
+    std::unordered_map<std::string, std::shared_ptr<air::Var>> varMap;
+    CHECK_EQ(ir5->getVars().size(), 2);
+    for (const std::shared_ptr<air::Var>& v : ir5->getVars()) {
+        varMap.emplace(v->getName(), v);
+    }
+
+    std::shared_ptr<air::Stmt> s1 = stmtMap.at("int a = 1;");
+    std::shared_ptr<air::Stmt> s2 = stmtMap.at("a++");
+    std::shared_ptr<air::Stmt> s3 = stmtMap.at("a = 2");
+    std::shared_ptr<air::Stmt> s4 = stmtMap.at("int* c;");
+    std::shared_ptr<air::Stmt> s5 = stmtMap.at("c = &a");
+
+    std::shared_ptr<air::Var> v1 = varMap.at("a");
+    std::shared_ptr<air::Var> v2 = varMap.at("c");
+
+    std::shared_ptr<dfact::DataflowResult<dfact::SetFact<air::Var>>> result = lv->analyze(ir5);
+
+    CHECK(result->getOutFact(cfg->getExit())->isEmpty());
+    CHECK(result->getInFact(cfg->getExit())->isEmpty());
+    CHECK(result->getOutFact(s5)->isEmpty());
+    CHECK(result->getInFact(s5)->equalsTo(
+            std::make_shared<dfact::SetFact<air::Var>>(std::unordered_set{v1})));
+    CHECK(result->getOutFact(s4)->equalsTo(
+            std::make_shared<dfact::SetFact<air::Var>>(std::unordered_set{v1})));
+    CHECK(result->getInFact(s4)->equalsTo(
+            std::make_shared<dfact::SetFact<air::Var>>(std::unordered_set{v1})));
+    CHECK(result->getOutFact(s3)->equalsTo(
+            std::make_shared<dfact::SetFact<air::Var>>(std::unordered_set{v1})));
+    CHECK(result->getInFact(s3)->isEmpty());
+    CHECK(result->getOutFact(s2)->isEmpty());
+    CHECK(result->getInFact(s2)->equalsTo(
+            std::make_shared<dfact::SetFact<air::Var>>(std::unordered_set{v1})));
+    CHECK(result->getOutFact(s1)->equalsTo(
+            std::make_shared<dfact::SetFact<air::Var>>(std::unordered_set{v1})));
+    CHECK(result->getInFact(s1)->isEmpty());
+    CHECK(result->getOutFact(cfg->getEntry())->isEmpty());
+    CHECK(result->getInFact(cfg->getEntry())->isEmpty());
+
+    al::World::getLogger().Success("Finish testing live variable example unaryOperator ...");
 
 }
 

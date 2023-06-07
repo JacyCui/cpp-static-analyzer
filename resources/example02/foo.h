@@ -1,11 +1,10 @@
-#include <iostream>
+#include <stdio.h>
 
 class Foo {
 
     void foo() {
         int a = 2;
-        std::cout << a << std::endl;
-        std::cin.getline(nullptr, 10);
+        printf("%d\n", a);
     }
 
 };

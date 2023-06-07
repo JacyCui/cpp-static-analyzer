@@ -49,4 +49,12 @@ class LiveVar {
         z = x;
     }
 
+    void unaryOperator() {
+        int a = 1;
+        a++;
+        a = 2;
+        int* c;
+        c = &a;
+    }
+
 };
