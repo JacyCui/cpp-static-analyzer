@@ -64,8 +64,17 @@ namespace analyzer::ir {
                     return true;
                 }
                 const auto* parentStmt = parents[0].get<clang::Stmt>();
-                if (parentStmt) {
-                    const auto *implicitCast = clang::dyn_cast<clang::ImplicitCastExpr>(parentStmt);
+                while (parentStmt) {
+                    const auto* parenExpr = clang::dyn_cast<clang::ParenExpr>(parentStmt);
+                    if (parenExpr) {
+                        parents = method.getASTUnit()->getASTContext().getParents(*parenExpr);
+                        if (parents.empty()) {
+                            break;
+                        }
+                        parentStmt = parents[0].get<clang::Stmt>();
+                        continue;
+                    }
+                    const auto* implicitCast = clang::dyn_cast<clang::ImplicitCastExpr>(parentStmt);
                     if (implicitCast) {
                         if (implicitCast->getCastKind() == clang::CK_LValueToRValue) {
                             if (uses.find(var) == uses.end()) {
@@ -74,7 +83,7 @@ namespace analyzer::ir {
                             return true;
                         }
                     }
-
+                    break;
                 }
                 if (defs.find(var) == defs.end()) {
                     defs.emplace(var);
