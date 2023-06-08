@@ -57,4 +57,10 @@ class LiveVar {
         c = &a;
     }
 
+    int multipleParen() {
+        int x = 0;
+        int y = (((x)));
+        return y;
+    }
+
 };
